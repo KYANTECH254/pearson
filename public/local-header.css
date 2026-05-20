@@ -1,0 +1,343 @@
+.menu-buttons-container .menu-buttons .ignite-menu-button {
+  display: inline-block;
+  opacity: 0.7;
+  position: relative;
+}
+
+.menu-buttons-container .menu-strike {
+  background-color: var(--pearson-yellow-color, #ffb81c);
+  bottom: 0;
+  display: block !important;
+  height: 4px;
+  opacity: 1;
+  position: absolute;
+  transition: left 160ms ease, width 160ms ease, visibility 0ms linear 0ms;
+  visibility: hidden;
+}
+
+.menu-buttons-container .menu-buttons .ignite-menu-button:hover,
+.menu-buttons-container .menu-buttons .ignite-menu-button:focus-visible,
+.menu-buttons-container .menu-buttons .ignite-menu-button.selected {
+  opacity: 1 !important;
+}
+
+.menu-buttons-container .menu-buttons .ignite-menu-button:focus-visible {
+  outline: 2px solid var(--pearson-yellow-color, #ffb81c);
+  outline-offset: 4px;
+}
+
+@media screen and (max-width: 640px) {
+  .menu-buttons-container .menu-strike {
+    height: 3px;
+  }
+}
+
+.local-route-loader {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.32);
+  bottom: 0;
+  display: none;
+  justify-content: center;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 10000;
+}
+
+.local-route-loader.local-route-loader--visible {
+  display: flex;
+}
+
+.local-route-loader__spinner {
+  animation: ball-clip-rotate 0.75s linear infinite;
+  border: 6px solid #fff;
+  border-bottom-color: transparent;
+  border-radius: 100%;
+  height: 82px;
+  width: 82px;
+}
+
+.ignite-password-field .show-hide-password {
+  color: var(--pearson-primary-color, #007fa3);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 24px;
+  justify-content: center;
+  line-height: 1;
+  min-width: 32px;
+  outline: none;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.ignite-password-field .show-hide-password.hide .fa-eye,
+.ignite-password-field .show-hide-password.show .fa-eye-slash {
+  display: inline-block;
+}
+
+.ignite-password-field .show-hide-password.hide .fa-eye-slash,
+.ignite-password-field .show-hide-password.show .fa-eye {
+  display: none;
+}
+
+.password-strength-wrapper .valid .fa-check-circle,
+.password-strength-wrapper .invalid .fa-times-circle {
+  display: inline-block;
+}
+
+.password-strength-wrapper .valid .fa-times-circle,
+.password-strength-wrapper .invalid .fa-check-circle,
+.password-strength-wrapper .unchecked .fa-check-circle {
+  display: none;
+}
+
+.password-strength-wrapper .valid {
+  color: #206b31;
+}
+
+.password-strength-wrapper .invalid {
+  color: #b00020;
+}
+
+.activity-tabs .mat-mdc-tab-body-wrapper {
+  overflow: visible !important;
+}
+
+.activity-tabs .mat-mdc-tab-body.mat-mdc-tab-body-active {
+  overflow: visible !important;
+}
+
+.activity-tabs .mat-mdc-tab-body-active > .mat-mdc-tab-body-content {
+  height: auto !important;
+  min-height: 0;
+  overflow: visible !important;
+}
+
+.activity-tabs .order-history-filters-container.isHidden {
+  display: none !important;
+}
+
+.activity-tabs #order-history .grid-container {
+  margin-top: 20px;
+}
+
+.activity-tabs #paymentHistoryGrid {
+  display: flex;
+  flex-flow: column;
+  font-size: 24px;
+  padding-top: 20px;
+  scroll-behavior: smooth;
+}
+
+.activity-tabs #paymentHistoryGrid .grid-panel-header,
+.activity-tabs #paymentHistoryGrid .grid-panel-row {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.activity-tabs #paymentHistoryGrid .grid-panel-row {
+  align-items: stretch;
+  background-color: #fff;
+  border: 2px solid var(--pearson-secondary-color, #d8d8d8);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-flow: column;
+  height: 68px;
+  justify-content: center;
+  margin-bottom: 16px;
+  transition: background-color 0.5s ease, border-color 0.2s ease;
+}
+
+.activity-tabs #paymentHistoryGrid .grid-panel-row:hover {
+  border-color: var(--pearson-primary-color, #007fa3);
+}
+
+.activity-tabs #paymentHistoryGrid .grid-panel-row > div,
+.activity-tabs #paymentHistoryGrid .grid-panel-header {
+  align-items: center;
+  display: flex;
+}
+
+.activity-tabs #paymentHistoryGrid .spacer-col,
+.activity-tabs #paymentHistoryGrid .toggle-col {
+  flex: 0 0 70px;
+  width: 70px;
+}
+
+.activity-tabs #paymentHistoryGrid .toggle-col {
+  align-content: center;
+  padding-left: 24px;
+}
+
+.activity-tabs #paymentHistoryGrid .toggle-col .fal {
+  color: var(--pearson-primary-color, #007fa3);
+  font-size: 44px;
+}
+
+.activity-tabs #paymentHistoryGrid .toggle-col .fa-arrow-circle-right {
+  position: relative;
+  transition: transform 0.3s linear;
+}
+
+.activity-tabs #paymentHistoryGrid .grid-panel-row:hover .toggle-col .fa-arrow-circle-right {
+  transform: rotate(90deg);
+}
+
+.activity-tabs #paymentHistoryGrid .row-content {
+  align-items: center;
+  box-sizing: border-box;
+  color: var(--pearson-purple-color, #5c2d91);
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  line-height: 1.8;
+  padding: 11px 32px;
+  position: relative;
+  text-align: left;
+}
+
+.activity-tabs #paymentHistoryGrid .header-col,
+.activity-tabs #paymentHistoryGrid .header-col-title {
+  align-items: center;
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity-tabs #paymentHistoryGrid .header-col-title {
+  color: var(--pearson-black-color, #000);
+  font-family: var(--ignite-semibold-font, var(--ignite-regular-font, Arial, sans-serif));
+  font-size: 16px;
+  line-height: 18px;
+  text-transform: uppercase;
+}
+
+.activity-tabs #paymentHistoryGrid .header-col-title i {
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 27px;
+  padding-right: 2px;
+}
+
+.activity-tabs #paymentHistoryGrid .header-col-title span {
+  display: inline-block;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.activity-tabs #paymentHistoryGrid .secondary-column {
+  font-size: 18px !important;
+}
+
+.activity-tabs #order-history .need-to-return {
+  font-family: var(--ignite-semibold-font, var(--ignite-regular-font, Arial, sans-serif));
+  margin-top: 20px;
+}
+
+.activity-tabs #order-history .initiate-return {
+  margin-top: 4px;
+}
+
+@media screen and (max-width: 1440px) {
+  .activity-tabs #paymentHistoryGrid {
+    font-size: 22px;
+  }
+
+  .activity-tabs #paymentHistoryGrid .header-col-title {
+    font-size: 14px;
+  }
+
+  .activity-tabs #paymentHistoryGrid .header-col-title i {
+    font-size: 20px;
+    line-height: 26px;
+  }
+
+  .activity-tabs #paymentHistoryGrid .grid-panel-row {
+    height: 48px;
+  }
+
+  .activity-tabs #paymentHistoryGrid .row-content {
+    padding: 6px 16px;
+  }
+
+  .activity-tabs #paymentHistoryGrid .spacer-col,
+  .activity-tabs #paymentHistoryGrid .toggle-col {
+    flex-basis: 50px;
+    width: 50px;
+  }
+
+  .activity-tabs #paymentHistoryGrid .toggle-col {
+    padding-left: 12px;
+  }
+
+  .activity-tabs #paymentHistoryGrid .toggle-col .fal {
+    font-size: 36px;
+  }
+
+  .activity-tabs #paymentHistoryGrid .secondary-column {
+    font-size: 14px !important;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .activity-tabs #paymentHistoryGrid .hidden-in-mobile {
+    display: none !important;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .activity-tabs #paymentHistoryGrid {
+    font-size: 20px;
+  }
+
+  .activity-tabs #paymentHistoryGrid .header-col-title {
+    font-size: 12px;
+    line-height: 14px;
+  }
+
+  .activity-tabs #paymentHistoryGrid .header-col-title i {
+    font-size: 18px;
+    line-height: 20px;
+  }
+
+  .activity-tabs #paymentHistoryGrid .grid-panel-row {
+    border-radius: 4px;
+    height: 44px;
+  }
+
+  .activity-tabs #paymentHistoryGrid .row-content {
+    padding: 4px 8px;
+  }
+
+  .activity-tabs #paymentHistoryGrid .spacer-col,
+  .activity-tabs #paymentHistoryGrid .toggle-col {
+    flex-basis: 44px;
+    width: 44px;
+  }
+
+  .activity-tabs #paymentHistoryGrid .toggle-col .fal {
+    font-size: 30px;
+  }
+}
+
+@keyframes ball-clip-rotate {
+  0% {
+    transform: rotate(0);
+  }
+
+  50% {
+    transform: rotate(180deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

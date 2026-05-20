@@ -1,0 +1,66 @@
+[
+  {
+    "materialName": "PTE Academic Question Bank",
+    "productCode": "978-1-292-37181-8",
+    "examCategory": "PTE Academic",
+    "buttonText": "Access with code",
+    "linkText": "Access with code",
+    "materialLink": "https://login.pearson.com/v1/piapi/piui/signin?client_id=bWPoUiRnLpUhX2rhGeP4AaLCeyQYNYDA&login_success_url=https:%2F%2Fenglish-dashboard.pearson.com%2Fies-session%3FiesCode%3DpDsNVYIG2x"
+  },
+  {
+    "materialName": "Official Guide to PTE Academic",
+    "productCode": "A103000421661",
+    "examCategory": "PTE Academic",
+    "buttonText": "Access with code",
+    "linkText": "Access with code",
+    "materialLink": "https://login.pearson.com/v1/piapi/piui/signin?client_id=bWPoUiRnLpUhX2rhGeP4AaLCeyQYNYDA&login_success_url=https:%2F%2Fenglish-dashboard.pearson.com%2Fies-session%3FiesCode%3D53ziydx2Ut"
+  },
+  {
+    "materialName": "Official Guide to PTE Academic",
+    "productCode": "A103000418214",
+    "examCategory": "PTE Academic",
+    "buttonText": "Access with code",
+    "linkText": "Access with code",
+    "materialLink": "https://login.pearson.com/v1/piapi/piui/signin?client_id=bWPoUiRnLpUhX2rhGeP4AaLCeyQYNYDA&login_success_url=https:%2F%2Fenglish-dashboard.pearson.com%2Fies-session%3FiesCode%3D53ziydx2Ut"
+  },
+  {
+    "materialName": "PTE Expert – Self Study Guide B1/B2",
+    "productCode": "A103000422078",
+    "examCategory": "PTE Academic",
+    "buttonText": "Access with code",
+    "linkText": "Access with code",
+    "materialLink": "https://login.pearson.com/v1/piapi/piui/signin?client_id=bWPoUiRnLpUhX2rhGeP4AaLCeyQYNYDA&login_success_url=https:%2F%2Fenglish-dashboard.pearson.com%2Fies-session%3FiesCode%3D53ziydx2Ut"
+  },
+  {
+    "materialName": "PTE Expert – Self Study Guide B1/B2",
+    "productCode": "A103000427611",
+    "examCategory": "PTE Academic",
+    "buttonText": "Access with code",
+    "linkText": "Access with code",
+    "materialLink": "https://login.pearson.com/v1/piapi/piui/signin?client_id=bWPoUiRnLpUhX2rhGeP4AaLCeyQYNYDA&login_success_url=https:%2F%2Fenglish-dashboard.pearson.com%2Fies-session%3FiesCode%3D53ziydx2Ut"
+  },
+  {
+    "materialName": "PTE Core Question Bank",
+    "productCode": "A103000443977",
+    "examCategory": "PTE Core",
+    "buttonText": "Access with code",
+    "linkText": "Access with code",
+    "materialLink": "https://login.pearson.com/v1/piapi/piui/signin?client_id=bWPoUiRnLpUhX2rhGeP4AaLCeyQYNYDA&login_success_url=https:%2F%2Fenglish-dashboard.pearson.com%2Fies-session%3FiesCode%3D53ziydx2Ut"
+  },
+  {
+    "materialName": "Official Guide to PTE Core",
+    "productCode": "A103000443976",
+    "examCategory": "PTE Core",
+    "buttonText": "Access with code",
+    "linkText": "Access with code",
+    "materialLink": "https://login.pearson.com/v1/piapi/piui/signin?client_id=bWPoUiRnLpUhX2rhGeP4AaLCeyQYNYDA&login_success_url=https:%2F%2Fenglish-dashboard.pearson.com%2Fies-session%3FiesCode%3D53ziydx2Ut"
+  },
+  {
+    "materialName": "Preparation Course",
+    "productCode": "A103000427491",
+    "examCategory": "PTE Core",
+    "buttonText": "Access with code",
+    "linkText": "Access with code",
+    "materialLink": "https://login.pearson.com/v1/piapi/piui/signin?client_id=bWPoUiRnLpUhX2rhGeP4AaLCeyQYNYDA&login_success_url=https:%2F%2Fenglish-dashboard.pearson.com%2Fies-session%3FiesCode%3D53ziydx2Ut"
+  }
+]

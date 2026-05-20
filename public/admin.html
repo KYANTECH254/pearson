@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin | myPTE</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/assets/cdn.pearsonpte.com/assets/fonts/plus-jakarta-sans/plus-jakarta-sans.css">
+  <style>
+    :root {
+      --purple: #5c2d91;
+      --teal: #007fa3;
+      --yellow: #ffb81c;
+      --ink: #202020;
+      --line: #d8d8d8;
+      --soft: #f7f7f7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--soft);
+      color: var(--ink);
+      font-family: "Plus Jakarta Sans", Arial, sans-serif;
+      margin: 0;
+    }
+
+    header {
+      align-items: center;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      padding: 18px 32px;
+    }
+
+    .brand {
+      color: var(--purple);
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    main {
+      margin: 0 auto;
+      max-width: 1080px;
+      padding: 32px;
+    }
+
+    h1 {
+      color: var(--purple);
+      font-size: 30px;
+      margin: 0 0 24px;
+    }
+
+    .layout {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: minmax(280px, 360px) 1fr;
+    }
+
+    section {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 24px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin: 0 0 18px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+
+    input,
+    select {
+      border: 1px solid #a7a7a7;
+      border-radius: 4px;
+      font: inherit;
+      height: 44px;
+      margin-bottom: 14px;
+      padding: 0 12px;
+      width: 100%;
+    }
+
+    button {
+      background: var(--purple);
+      border: 0;
+      border-radius: 4px;
+      color: #fff;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      min-height: 44px;
+      padding: 0 18px;
+    }
+
+    .secondary {
+      background: var(--teal);
+    }
+
+    .message {
+      margin-top: 14px;
+      min-height: 22px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 12px 8px;
+      text-align: left;
+    }
+
+    th {
+      color: var(--purple);
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 760px) {
+      header,
+      main {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">myPTE Admin</div>
+    <button class="secondary" id="logoutButton" type="button">Log out</button>
+  </header>
+
+  <main>
+    <h1>Users</h1>
+    <div class="layout">
+      <section>
+        <h2>Create user</h2>
+        <form id="userForm">
+          <label for="firstName">First name</label>
+          <input id="firstName" name="firstName" required>
+
+          <label for="lastName">Last name</label>
+          <input id="lastName" name="lastName" required>
+
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" required>
+
+          <label for="username">Username</label>
+          <input id="username" name="username" required>
+
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" required>
+
+          <label for="role">Role</label>
+          <select id="role" name="role">
+            <option value="USER">User</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+
+          <button type="submit">Create user</button>
+          <div class="message" id="message"></div>
+        </form>
+      </section>
+
+      <section>
+        <h2>Existing users</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody id="users"></tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+
+  <script src="/admin.js"></script>
+</body>
+</html>

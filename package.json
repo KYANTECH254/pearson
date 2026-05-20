@@ -1,0 +1,23 @@
+{
+  "name": "pearson-dashboard-download",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "download:missing-assets": "node scripts/download-missing-src-assets.js",
+    "normalize:routes": "node scripts/normalize-page-routes.js",
+    "prepare:public": "node scripts/rewrite-public-assets.js",
+    "start": "nodemon server.js",
+    "test": "node --check server.js && node --check scripts/download-missing-src-assets.js && node --check scripts/normalize-page-routes.js && node --check scripts/rewrite-public-assets.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "nodemon": "^3.1.14",
+    "prisma": "^6.19.3",
+    "puppeteer": "^25.0.2"
+  }
+}
