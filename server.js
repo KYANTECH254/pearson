@@ -23,7 +23,8 @@ function loadEnv() {
 loadEnv();
 
 const { login, logout, me, register, ensureDefaultAdmin } = require("./controllers/authController");
-const { createUser, listUsers } = require("./controllers/userController");
+const { createUser, listUsers, updateProfile, updatePassword, updatePrivacy } = require("./controllers/userController");
+const { databaseTarget, isDatabaseConnectionError } = require("./lib/databaseErrors");
 const { sendJson } = require("./lib/http");
 
 const publicDir = path.join(__dirname, "public");
@@ -145,6 +146,21 @@ async function handleApiRequest(req, res, pathname) {
       return true;
     }
 
+    if (pathname === "/api/user/profile" && req.method === "POST") {
+      await updateProfile(req, res);
+      return true;
+    }
+
+    if (pathname === "/api/user/password" && req.method === "POST") {
+      await updatePassword(req, res);
+      return true;
+    }
+
+    if (pathname === "/api/user/privacy" && req.method === "POST") {
+      await updatePrivacy(req, res);
+      return true;
+    }
+
     if (pathname.startsWith("/api/")) {
       sendJson(res, 404, { error: "API route not found." });
       return true;
@@ -152,6 +168,12 @@ async function handleApiRequest(req, res, pathname) {
 
     return false;
   } catch (error) {
+    if (isDatabaseConnectionError(error)) {
+      console.error(error.message);
+      sendJson(res, 503, { error: `Database unavailable at ${databaseTarget()}.` });
+      return true;
+    }
+
     console.error(error);
     sendJson(res, 500, { error: "Server error." });
     return true;
@@ -209,6 +231,12 @@ function listen(port, attemptsLeft = 10) {
 ensureDefaultAdmin()
   .then(() => listen(preferredPort))
   .catch((error) => {
+    if (isDatabaseConnectionError(error)) {
+      console.error(`Database unavailable at ${databaseTarget()}; skipping startup seed.`);
+      listen(preferredPort);
+      return;
+    }
+
     console.error(error);
     process.exit(1);
   });

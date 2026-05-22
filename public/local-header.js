@@ -134,6 +134,11 @@
         arrow.classList.toggle("fa-arrow-circle-right", !open);
         arrow.classList.toggle("fa-arrow-circle-down", open);
       }
+
+      // Clear messages when closing
+      if (!open) {
+          setAccountMessage(panel, "");
+      }
     }
 
     function openOnly(panelToOpen) {
@@ -192,6 +197,36 @@
         });
       });
     });
+  }
+
+  function setAccountMessage(panel, text, isError) {
+    if (!panel) return;
+    var message = panel.querySelector(".local-account-message");
+
+    if (!message) {
+      message = document.createElement("div");
+      message.className = "local-account-message";
+      message.style.marginTop = "16px";
+      message.style.marginBottom = "16px";
+      message.style.minHeight = "22px";
+      message.style.fontFamily = "var(--ignite-regular-font, Arial, sans-serif)";
+      message.style.textAlign = "center";
+      message.style.fontWeight = "bold";
+
+      var buttonsContainer = panel.querySelector(".ignite-buttons-container");
+      if (buttonsContainer) {
+          buttonsContainer.parentNode.insertBefore(message, buttonsContainer);
+      } else {
+          panel.querySelector(".ignite-panel")?.appendChild(message);
+      }
+    }
+
+    message.textContent = text || "";
+    message.style.color = isError ? "#b00020" : "#206b31";
+
+    if (text) {
+        message.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
 
   function updateUserChrome(user) {
@@ -728,7 +763,12 @@
         event.preventDefault();
         toggle.click();
       });
-      toggle.addEventListener("focusout", function () {
+
+      field.addEventListener("focusout", function (event) {
+        var nextFocus = event.relatedTarget;
+        if (nextFocus && field.contains(nextFocus)) {
+          return;
+        }
         setPasswordVisible(toggle, input, false);
       });
     });
@@ -1080,6 +1120,125 @@
     }
   });
 
+  function setupAccountForms() {
+    if (!isAccountRoute()) {
+      return;
+    }
+
+    var profilePanel = Array.from(document.querySelectorAll("ignite-panel")).find(function (p) {
+      var t = p.querySelector("#ignite-panel-title-text span");
+      return t && t.textContent.trim().toLowerCase() === "profile";
+    });
+
+    if (profilePanel) {
+      var profileForm = profilePanel.querySelector("form");
+      if (profileForm && profileForm.dataset.localFormReady !== "true") {
+        profileForm.dataset.localFormReady = "true";
+        profileForm.addEventListener("submit", function (event) {
+          event.preventDefault();
+          setAccountMessage(profilePanel, "");
+          var payload = {
+            email: document.querySelector("#tt-email-input")?.value,
+            firstName: document.querySelector("#mat-input-6")?.value,
+            lastName: document.querySelector("#mat-input-7")?.value,
+            cityOfBirth: document.querySelector("#mat-input-1")?.value,
+            countryOfBirth: document.querySelector("#mat-input-8")?.value,
+            countryOfCitizenship: document.querySelector("#mat-input-9")?.value,
+            countryOfResidence: document.querySelector("#mat-input-10")?.value,
+            streetAddress: document.querySelector("#mat-input-2")?.value,
+            city: document.querySelector("#mat-input-3")?.value,
+            phoneCountryCode: document.querySelector("#ignite_telephone_input_0_country_code")?.value,
+            primaryPhone: document.querySelector("#ignite_telephone_input_0_telephone")?.value,
+            accommodationsNeeded: document.querySelector("#mat-radio-4-input")?.checked,
+            smsConsent: document.querySelector("#tt-sms-consent-input")?.checked,
+          };
+
+          fetch("/api/user/profile", {
+            method: "POST",
+            headers: authHeaders({ "Content-Type": "application/json" }),
+            body: JSON.stringify(payload),
+          }).then(function (res) {
+            if (res.ok) setAccountMessage(profilePanel, "Profile updated successfully!");
+            else return res.json().then(function(data) { throw new Error(data.error || "Failed to update profile."); });
+          }).catch(function(err) {
+            setAccountMessage(profilePanel, err.message, true);
+          });
+        });
+      }
+    }
+
+    var passwordPanel = Array.from(document.querySelectorAll("ignite-panel")).find(function (p) {
+      var t = p.querySelector("#ignite-panel-title-text span");
+      return t && t.textContent.trim().toLowerCase() === "password";
+    });
+
+    if (passwordPanel) {
+      var passwordBtn = passwordPanel.querySelector('button.ignite-button[color="primary"]');
+      if (passwordBtn && passwordBtn.dataset.localFormReady !== "true") {
+        passwordBtn.dataset.localFormReady = "true";
+        passwordBtn.addEventListener("click", function (event) {
+          event.preventDefault();
+          setAccountMessage(passwordPanel, "");
+          var currentPassword = document.querySelector("#mat-input-13")?.value;
+          var newPassword = document.querySelector("#mat-input-14")?.value;
+
+          if (!currentPassword || !newPassword) {
+            setAccountMessage(passwordPanel, "Please enter both current and new passwords.", true);
+            return;
+          }
+
+          fetch("/api/user/password", {
+            method: "POST",
+            headers: authHeaders({ "Content-Type": "application/json" }),
+            body: JSON.stringify({ currentPassword: currentPassword, newPassword: newPassword }),
+          }).then(function (res) {
+            if (res.ok) {
+                setAccountMessage(passwordPanel, "Password updated successfully!");
+                document.querySelector("#mat-input-13").value = "";
+                document.querySelector("#mat-input-14").value = "";
+                updatePasswordFieldState(document.querySelector("#mat-input-13"));
+                updatePasswordFieldState(document.querySelector("#mat-input-14"));
+            }
+            else return res.json().then(function(data) { throw new Error(data.error || "Failed to update password."); });
+          }).catch(function(err) {
+            setAccountMessage(passwordPanel, err.message, true);
+          });
+        });
+      }
+    }
+
+    var privacyPanel = Array.from(document.querySelectorAll("ignite-panel")).find(function (p) {
+      var t = p.querySelector("#ignite-panel-title-text span");
+      return t && t.textContent.trim().toLowerCase() === "privacy and sharing";
+    });
+
+    if (privacyPanel) {
+      var privacyBtn = document.querySelector("#button-privacy-prefernce-save");
+      if (privacyBtn && privacyBtn.dataset.localFormReady !== "true") {
+        privacyBtn.dataset.localFormReady = "true";
+        privacyBtn.addEventListener("click", function (event) {
+          event.preventDefault();
+          setAccountMessage(privacyPanel, "");
+          var payload = {
+            communicationConsent: document.querySelector("#tt-communication-consent-input")?.checked,
+            researchConsent: document.querySelector("#tt-research-consent-input")?.checked,
+          };
+
+          fetch("/api/user/privacy", {
+            method: "POST",
+            headers: authHeaders({ "Content-Type": "application/json" }),
+            body: JSON.stringify(payload),
+          }).then(function (res) {
+            if (res.ok) setAccountMessage(privacyPanel, "Privacy settings updated successfully!");
+            else return res.json().then(function(data) { throw new Error(data.error || "Failed to update privacy settings."); });
+          }).catch(function(err) {
+            setAccountMessage(privacyPanel, err.message, true);
+          });
+        });
+      }
+    }
+  }
+
   async function init() {
     ensurePreloader();
     document.querySelectorAll("ignite-profile-menu").forEach(setupProfileMenu);
@@ -1089,6 +1248,7 @@
     await setupAuthChrome();
     setupPasswordFields();
     setupAccountProfilePanels();
+    setupAccountForms();
     syncRouteSpecificState();
     document.querySelectorAll(".menu-buttons-container").forEach(setupMenuStrike);
   }
