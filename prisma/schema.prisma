@@ -43,3 +43,18 @@ model User {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 }
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  title       String
+  category    String   // "PTE Academic", "PTE Core"
+  type        String   // "Individual", "Package"
+  description String?
+  price       Float
+  currency    String   @default("AU$")
+  imageUrl    String?
+  variants    Json?    // For storing options like "Versions available"
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

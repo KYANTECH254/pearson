@@ -24,6 +24,7 @@ loadEnv();
 
 const { login, logout, me, register, ensureDefaultAdmin } = require("./controllers/authController");
 const { createUser, listUsers, updateProfile, updatePassword, updatePrivacy } = require("./controllers/userController");
+const { getProducts, createProduct, updateProduct, deleteProduct } = require("./controllers/productController");
 const { databaseTarget, isDatabaseConnectionError } = require("./lib/databaseErrors");
 const { sendJson } = require("./lib/http");
 
@@ -158,6 +159,28 @@ async function handleApiRequest(req, res, pathname) {
 
     if (pathname === "/api/user/privacy" && req.method === "POST") {
       await updatePrivacy(req, res);
+      return true;
+    }
+
+    if (pathname === "/api/products" && req.method === "GET") {
+      await getProducts(req, res);
+      return true;
+    }
+
+    if (pathname === "/api/admin/products" && req.method === "POST") {
+      await createProduct(req, res);
+      return true;
+    }
+
+    if (pathname.startsWith("/api/admin/products/") && req.method === "PUT") {
+      const id = pathname.split("/").pop();
+      await updateProduct(req, res, id);
+      return true;
+    }
+
+    if (pathname.startsWith("/api/admin/products/") && req.method === "DELETE") {
+      const id = pathname.split("/").pop();
+      await deleteProduct(req, res, id);
       return true;
     }
 

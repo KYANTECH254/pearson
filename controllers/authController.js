@@ -4,10 +4,65 @@ const { parseCookies, parseJsonBody, sendJson } = require("../lib/http");
 const { hashPassword, verifyPassword } = require("../lib/password");
 const { assignPteId } = require("../lib/pteId");
 const { optionalProfileData } = require("../lib/userProfile");
+const { seedProducts } = require("./productController");
 
 const sessions = new Map();
 const sessionCookie = "pearson_session";
-const sessionCookieOptions = "Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000";
+const sessionMaxAgeSeconds = 60 * 60 * 24 * 30;
+const sessionCookieOptions = `Path=/; HttpOnly; SameSite=Lax; Max-Age=${sessionMaxAgeSeconds}`;
+const sessionSecret = process.env.SESSION_SECRET || process.env.AUTH_SECRET || process.env.DATABASE_URL || "pearson-dashboard-local-session-secret";
+
+function base64UrlEncode(value) {
+  return Buffer.from(JSON.stringify(value)).toString("base64url");
+}
+
+function base64UrlDecode(value) {
+  return JSON.parse(Buffer.from(value, "base64url").toString("utf8"));
+}
+
+function signSessionPayload(payload) {
+  return crypto.createHmac("sha256", sessionSecret).update(payload).digest("base64url");
+}
+
+function createSessionToken(user) {
+  const payload = base64UrlEncode({
+    userId: user.id,
+    issuedAt: Date.now(),
+    expiresAt: Date.now() + sessionMaxAgeSeconds * 1000,
+    nonce: crypto.randomBytes(16).toString("hex"),
+  });
+  const signature = signSessionPayload(payload);
+
+  return `v1.${payload}.${signature}`;
+}
+
+function getSignedSession(token) {
+  const parts = String(token || "").split(".");
+
+  if (parts.length !== 3 || parts[0] !== "v1") {
+    return null;
+  }
+
+  const expectedSignature = signSessionPayload(parts[1]);
+  const signature = Buffer.from(parts[2]);
+  const expected = Buffer.from(expectedSignature);
+
+  if (signature.length !== expected.length || !crypto.timingSafeEqual(signature, expected)) {
+    return null;
+  }
+
+  try {
+    const session = base64UrlDecode(parts[1]);
+
+    if (!session.userId || !session.expiresAt || session.expiresAt <= Date.now()) {
+      return null;
+    }
+
+    return session;
+  } catch (error) {
+    return null;
+  }
+}
 
 function publicUser(user) {
   if (!user) {
@@ -53,6 +108,7 @@ async function ensureSeedLogins() {
     lastName: "User",
     role: "USER",
   });
+  await seedProducts();
 }
 
 async function ensureSeedUser(seed) {
@@ -79,7 +135,7 @@ async function ensureSeedUser(seed) {
 }
 
 function setSession(user) {
-  const token = crypto.randomBytes(32).toString("hex");
+  const token = createSessionToken(user);
   sessions.set(token, { userId: user.id, createdAt: Date.now() });
   return token;
 }
@@ -88,7 +144,7 @@ async function currentUser(req) {
   const authHeader = String(req.headers.authorization || "");
   const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
   const token = bearerToken || parseCookies(req)[sessionCookie];
-  const session = token ? sessions.get(token) : null;
+  const session = token ? sessions.get(token) || getSignedSession(token) : null;
 
   if (!session) {
     return null;

@@ -419,6 +419,35 @@
     });
   }
 
+  function getInputValue(selector) {
+    var input = document.querySelector(selector);
+    return input ? input.value : undefined;
+  }
+
+  function getSelectValue(selector) {
+    var select = document.querySelector(selector);
+    return select ? select.getAttribute("data-value") || "" : undefined;
+  }
+
+  function getChecked(selector) {
+    var input = document.querySelector(selector);
+    return input ? input.checked : undefined;
+  }
+
+  function getSwitchChecked(selector) {
+    var button = document.querySelector(selector);
+    return button ? button.getAttribute("aria-checked") === "true" : undefined;
+  }
+
+  function getRadioValue(values) {
+    var selected = Object.keys(values).find(function (value) {
+      var input = document.querySelector(values[value]);
+      return input && input.checked;
+    });
+
+    return selected;
+  }
+
   function populateAccountProfile(user) {
     var birthDay = user.birthDay;
     var birthMonth = user.birthMonth;
@@ -947,6 +976,34 @@
     });
   }
 
+  function setupScoreReportBackButtons() {
+    document.querySelectorAll("ignite-score-report[backurl] .ignite-back-arrow").forEach(function (button) {
+      var report = button.closest("ignite-score-report[backurl]");
+      var backUrl = report ? report.getAttribute("backurl") : "";
+
+      if (!backUrl || button.dataset.localScoreBackReady === "true") {
+        return;
+      }
+
+      button.dataset.localScoreBackReady = "true";
+      button.setAttribute("role", "link");
+      button.setAttribute("tabindex", "0");
+      button.setAttribute("aria-label", "Back to my activity");
+      button.addEventListener("click", function (event) {
+        event.preventDefault();
+        navigateTo(backUrl);
+      });
+      button.addEventListener("keydown", function (event) {
+        if (event.key !== "Enter" && event.key !== " ") {
+          return;
+        }
+
+        event.preventDefault();
+        navigateTo(backUrl);
+      });
+    });
+  }
+
   function navigateTo(path) {
     loadRoute(new URL(path, window.location.href)).catch(function () {
       window.location.href = path;
@@ -1138,28 +1195,51 @@
           event.preventDefault();
           setAccountMessage(profilePanel, "");
           var payload = {
-            email: document.querySelector("#tt-email-input")?.value,
-            firstName: document.querySelector("#mat-input-6")?.value,
-            lastName: document.querySelector("#mat-input-7")?.value,
-            cityOfBirth: document.querySelector("#mat-input-1")?.value,
-            countryOfBirth: document.querySelector("#mat-input-8")?.value,
-            countryOfCitizenship: document.querySelector("#mat-input-9")?.value,
-            countryOfResidence: document.querySelector("#mat-input-10")?.value,
-            streetAddress: document.querySelector("#mat-input-2")?.value,
-            city: document.querySelector("#mat-input-3")?.value,
-            phoneCountryCode: document.querySelector("#ignite_telephone_input_0_country_code")?.value,
-            primaryPhone: document.querySelector("#ignite_telephone_input_0_telephone")?.value,
-            accommodationsNeeded: document.querySelector("#mat-radio-4-input")?.checked,
-            smsConsent: document.querySelector("#tt-sms-consent-input")?.checked,
+            email: getInputValue("#tt-email-input"),
+            firstName: getInputValue("#mat-input-6"),
+            lastName: getInputValue("#mat-input-7"),
+            cityOfBirth: getInputValue("#mat-input-1"),
+            countryOfBirth: getInputValue("#mat-input-8"),
+            countryOfCitizenship: getInputValue("#mat-input-9"),
+            countryOfResidence: getInputValue("#mat-input-10"),
+            streetAddress: getInputValue("#mat-input-2"),
+            city: getInputValue("#mat-input-3"),
+            phoneCountryCode: getInputValue("#ignite_telephone_input_0_country_code"),
+            primaryPhone: getInputValue("#ignite_telephone_input_0_telephone"),
+            birthDay: getSelectValue("#mat-select-0"),
+            birthMonth: getSelectValue("#mat-select-1"),
+            birthYear: getSelectValue("#mat-select-2"),
+            gender: getRadioValue({
+              male: "#mat-radio-0-input",
+              female: "#mat-radio-1-input",
+              other: "#mat-radio-2-input",
+            }),
+            deliveredBy: getRadioValue({
+              email: "#delivered-by-email-input",
+              sms: "#delivered-by-sms-input",
+              pdf: "#delivered-by-pdf-input",
+            }),
+            accommodationsNeeded: getChecked("#mat-radio-4-input"),
+            smsConsent: getChecked("#tt-sms-consent-input"),
+            noGivenNames: getChecked("#mat-mdc-checkbox-1-input"),
+            noLastName: getChecked("#mat-mdc-checkbox-2-input"),
+            inSimplifiedChinese: getSwitchChecked("#ff-in-simplified-chinese-button"),
           };
 
           fetch("/api/user/profile", {
             method: "POST",
+            credentials: "same-origin",
             headers: authHeaders({ "Content-Type": "application/json" }),
             body: JSON.stringify(payload),
           }).then(function (res) {
-            if (res.ok) setAccountMessage(profilePanel, "Profile updated successfully!");
+            if (res.ok) return res.json();
             else return res.json().then(function(data) { throw new Error(data.error || "Failed to update profile."); });
+          }).then(function(data) {
+            if (data && data.user) {
+              updateUserChrome(data.user);
+              populateAccountProfile(data.user);
+            }
+            setAccountMessage(profilePanel, "Profile updated successfully!");
           }).catch(function(err) {
             setAccountMessage(profilePanel, err.message, true);
           });
@@ -1189,6 +1269,7 @@
 
           fetch("/api/user/password", {
             method: "POST",
+            credentials: "same-origin",
             headers: authHeaders({ "Content-Type": "application/json" }),
             body: JSON.stringify({ currentPassword: currentPassword, newPassword: newPassword }),
           }).then(function (res) {
@@ -1226,11 +1307,17 @@
 
           fetch("/api/user/privacy", {
             method: "POST",
+            credentials: "same-origin",
             headers: authHeaders({ "Content-Type": "application/json" }),
             body: JSON.stringify(payload),
           }).then(function (res) {
-            if (res.ok) setAccountMessage(privacyPanel, "Privacy settings updated successfully!");
+            if (res.ok) return res.json();
             else return res.json().then(function(data) { throw new Error(data.error || "Failed to update privacy settings."); });
+          }).then(function(data) {
+            if (data && data.user) {
+              populateAccountProfile(data.user);
+            }
+            setAccountMessage(privacyPanel, "Privacy settings updated successfully!");
           }).catch(function(err) {
             setAccountMessage(privacyPanel, err.message, true);
           });
@@ -1249,6 +1336,7 @@
     setupPasswordFields();
     setupAccountProfilePanels();
     setupAccountForms();
+    setupScoreReportBackButtons();
     syncRouteSpecificState();
     document.querySelectorAll(".menu-buttons-container").forEach(setupMenuStrike);
   }
