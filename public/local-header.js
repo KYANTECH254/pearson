@@ -18,6 +18,20 @@
     "/help",
   ]);
   var internalRoutePatterns = [/^\/my-activity\/test-score\/[^/]+$/];
+  var protectedRoutes = new Set([
+    "/",
+    "/activity",
+    "/my-activity",
+    "/learn",
+    "/account",
+    "/admin",
+    "/users/edit-user-account",
+    "/users/edit-user-account/collapse",
+    "/cart",
+    "/myPTE",
+    "/mypte",
+    "/dashboard",
+  ]);
   var routeToMenuItem = {
     "/": "menu_item_myPTE",
     "/dashboard": "menu_item_myPTE",
@@ -280,8 +294,106 @@
     return headers;
   }
 
+  async function apiJson(path) {
+    var response = await fetch(path, {
+      credentials: "same-origin",
+      headers: authHeaders(),
+    });
+    var data = await response.json().catch(function () {
+      return {};
+    });
+
+    if (!response.ok) {
+      throw new Error(data.error || "Request failed.");
+    }
+
+    return data;
+  }
+
+  function formatDate(value) {
+    var date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
+
+  function formatShortDate(value) {
+    var date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  function formatReportDate(value) {
+    var date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
+  function addYears(value, years) {
+    var date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    date.setFullYear(date.getFullYear() + years);
+    return date;
+  }
+
+  function testTime(test) {
+    var report = test.scoreReport || {};
+    var metadata = report.metadata || test.metadata || {};
+    return String(metadata.testTime || "1:30 PM");
+  }
+
+  function testTimezone(test) {
+    return String((test.scoreReport && test.scoreReport.timezone) || "AEST");
+  }
+
+  function registrationId(test) {
+    return String((test.scoreReport && test.scoreReport.registrationId) || "");
+  }
+
+  function reportScore(test, key) {
+    var report = test.scoreReport || {};
+    var fallback = key === "overallScore" ? test.score : null;
+    var value = report[key] == null ? fallback : report[key];
+
+    return value == null || value === "" ? "" : String(Math.round(Number(value)));
+  }
+
   function isAccountRoute() {
     return ["/account", "/users/edit-user-account", "/users/edit-user-account/collapse"].includes(getRoute(new URL(window.location.href)));
+  }
+
+  function isProtectedRoute(route) {
+    return protectedRoutes.has(route) || internalRoutePatterns.some(function (pattern) {
+      return pattern.test(route);
+    });
   }
 
   function setInputValue(selector, value) {
@@ -512,18 +624,24 @@
   }
 
   function setupAuthChrome() {
-    var shouldBlockForUser = isAccountRoute();
+    var route = getRoute(new URL(window.location.href));
+    var shouldBlockForUser = isProtectedRoute(route);
     var userRequest;
 
     if (shouldBlockForUser) {
       showPreloader();
     }
 
+    if (shouldBlockForUser && !getStoredAuthToken()) {
+      window.location.href = "/login";
+      return Promise.resolve(null);
+    }
+
     userRequest = fetch("/api/auth/me", {
       credentials: "same-origin",
       headers: authHeaders(),
     }).then(function (response) {
-      if (response.status === 401 && isAccountRoute()) {
+      if (response.status === 401 && shouldBlockForUser) {
         clearStoredAuthToken();
         window.location.href = "/login";
         return null;
@@ -877,6 +995,228 @@
     }
   }
 
+  function setText(node, value) {
+    if (node) {
+      node.textContent = value == null ? "" : String(value);
+    }
+  }
+
+  function setActivityCard(wrapper, test) {
+    var card = wrapper.querySelector("mat-card");
+    var report = test.scoreReport || {};
+    var titleNodes = card ? card.querySelectorAll("mat-card-content p .text-large.text-bold") : [];
+    var registration = card ? Array.from(card.querySelectorAll("mat-card-content p")).find(function (node) {
+      return node.textContent.trim().indexOf("Registration ID:") === 0;
+    }) : null;
+    var center = card ? card.querySelector("#test_center strong") : null;
+    var centerLines = card ? card.querySelectorAll("#test_center .ng-star-inserted div") : [];
+    var cityLine = card ? Array.from(card.querySelectorAll("#test_center div")).find(function (node) {
+      return node.textContent.indexOf("AUS") !== -1 || node.textContent.indexOf(report.testCenterCountry || "") !== -1;
+    }) : null;
+    var viewLink = card ? card.querySelector("#link_view_score") : null;
+
+    wrapper.style.display = "";
+    setText(titleNodes[0], test.title || "PTE Academic");
+    setText(titleNodes[1], formatDate(test.testDate) + " - " + testTime(test) + " " + testTimezone(test));
+    setText(registration, "Registration ID: " + registrationId(test));
+    setText(center, report.testCenterName || "");
+    setText(centerLines[0], " " + (report.testCenterAddress1 || ""));
+    setText(centerLines[1], " " + (report.testCenterAddress2 || ""));
+    setText(cityLine, " " + [report.testCenterCity, report.testCenterState, report.testCenterCountry, report.testCenterPostalCode].filter(Boolean).join(", ").replace(", " + report.testCenterCountry, ", " + report.testCenterCountry + " "));
+
+    if (viewLink) {
+      viewLink.href = "/my-activity/test-score/" + encodeURIComponent(test.id);
+    }
+  }
+
+  async function setupDynamicActivityTests() {
+    var route = getRoute(new URL(window.location.href));
+    var wrappers;
+    var template;
+    var data;
+
+    if (route !== "/my-activity" && route !== "/activity") {
+      return;
+    }
+
+    wrappers = Array.from(document.querySelectorAll("test-taker-appointment-history")).map(function (node) {
+      return node.parentElement;
+    }).filter(Boolean);
+    template = wrappers[0];
+
+    if (!template) {
+      return;
+    }
+
+    data = await apiJson("/api/user/tests").catch(function () {
+      return { tests: [] };
+    });
+
+    while (wrappers.length < data.tests.length) {
+      var clone = template.cloneNode(true);
+      template.parentNode.appendChild(clone);
+      wrappers.push(clone);
+    }
+
+    wrappers.forEach(function (wrapper, index) {
+      var test = data.tests[index];
+
+      if (!test) {
+        wrapper.style.display = "none";
+        return;
+      }
+
+      setActivityCard(wrapper, test);
+    });
+  }
+
+  function setScoreValue(selector, value) {
+    document.querySelectorAll(selector).forEach(function (node) {
+      node.textContent = value || "";
+    });
+  }
+
+  function setScoreBars(label, value) {
+    var normalized = value || "0";
+
+    document.querySelectorAll(".skills-horizontal").forEach(function (row) {
+      if (row.textContent.toLowerCase().indexOf(label.toLowerCase()) === -1) {
+        return;
+      }
+
+      setText(row.querySelector(".skill-value"), normalized);
+      row.querySelectorAll(".bar").forEach(function (bar) {
+        bar.style.width = normalized + "%";
+      });
+    });
+  }
+
+  function setSkillSpinner(label, value) {
+    var normalized = value || "0";
+
+    document.querySelectorAll(".skills-item-container").forEach(function (container) {
+      var name = container.querySelector(".skills-item-name");
+      var score = container.querySelector(".skills-item-value");
+
+      if (!name || !score || name.textContent.toLowerCase().indexOf(label.toLowerCase()) === -1) {
+        return;
+      }
+
+      score.textContent = normalized;
+    });
+  }
+
+  function setLabeledInfo(label, value) {
+    document.querySelectorAll(".overview-points li, #parent3 .left, #parent3 .right").forEach(function (node) {
+      var strong = node.querySelector("strong");
+      var target = strong && strong.parentElement ? strong.parentElement.querySelector("span[class], p") : null;
+
+      if (!strong || !target || strong.textContent.replace(/\s+/g, " ").trim().toLowerCase() !== label.toLowerCase()) {
+        return;
+      }
+
+      target.textContent = value == null ? "" : String(value);
+    });
+  }
+
+  function setCandidateInfo(user) {
+    var dateOfBirth = "";
+
+    if (user.birthDay && user.birthMonth && user.birthYear) {
+      dateOfBirth = new Date(Date.UTC(user.birthYear, user.birthMonth - 1, user.birthDay)).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    } else if (user.dateOfBirth) {
+      dateOfBirth = formatShortDate(user.dateOfBirth);
+    }
+
+    setScoreValue(".candidate-info .country-citizenship", user.countryOfCitizenship || "");
+    document.querySelectorAll(".candidate-info .country-residence").forEach(function (node, index) {
+      node.textContent = index === 0 ? dateOfBirth : (user.countryOfResidence || "");
+    });
+    setScoreValue(".candidate-info .gender", user.gender || "");
+  }
+
+  async function setupDynamicScoreReport() {
+    var route = getRoute(new URL(window.location.href));
+    var id;
+    var data;
+    var auth;
+    var test;
+    var report;
+    var overall;
+    var listening;
+    var reading;
+    var speaking;
+    var writing;
+
+    if (!/^\/my-activity\/test-score\/[^/]+$/.test(route)) {
+      return;
+    }
+
+    id = route.split("/").pop();
+    data = await apiJson("/api/user/tests/" + encodeURIComponent(id)).catch(async function () {
+      var list = await apiJson("/api/user/tests").catch(function () {
+        return { tests: [] };
+      });
+      return { test: list.tests[0] || null };
+    });
+    auth = await apiJson("/api/auth/me").catch(function () {
+      return {};
+    });
+    test = data.test;
+
+    if (!test) {
+      return;
+    }
+
+    report = test.scoreReport || {};
+    var metadata = report.metadata || test.metadata || {};
+    var validUntil = report.validUntil || addYears(test.testDate, 2);
+    var reportDate = formatReportDate(test.testDate);
+    var validDate = formatReportDate(validUntil);
+    overall = reportScore(test, "overallScore");
+    listening = reportScore(test, "listeningScore");
+    reading = reportScore(test, "readingScore");
+    speaking = reportScore(test, "speakingScore");
+    writing = reportScore(test, "writingScore");
+
+    setText(document.querySelector("#text_test_name"), (test.title || "PTE Academic") + " • ID" + registrationId(test));
+    setText(document.querySelector("#text_test_time"), formatDate(test.testDate) + " - " + testTime(test) + " " + testTimezone(test));
+    setScoreValue(".src_code", report.reportCode || "");
+    setScoreValue(".overall-value, .gse-badge__score", overall);
+    document.querySelectorAll(".vbar-online").forEach(function (bar) {
+      bar.style.left = (overall || "0") + "%";
+    });
+    setScoreBars("Listening", listening);
+    setScoreBars("Reading", reading);
+    setScoreBars("Speaking", speaking);
+    setScoreBars("Writing", writing);
+    setSkillSpinner("Listening", listening);
+    setSkillSpinner("Reading", reading);
+    setSkillSpinner("Speaking", speaking);
+    setSkillSpinner("Writing", writing);
+    setScoreValue(".test-center-location", report.testCenterCountry || "");
+    setScoreValue(".test-center-id", metadata.testCenterId || "");
+    setScoreValue(".test-center-name, .mobile-view-test-centre", report.testCenterName || "");
+    setScoreValue(".test-date", reportDate);
+    setScoreValue(".valid-date", validDate);
+    var reportUser = test.user || auth.user || {};
+
+    setLabeledInfo("Test Taker ID", reportUser.pteId || "");
+    setLabeledInfo("Registration ID", registrationId(test));
+    setLabeledInfo("Test Centre Country", report.testCenterCountry || "");
+    setLabeledInfo("Test Centre ID", metadata.testCenterId || "");
+    setLabeledInfo("Test Date", reportDate);
+    setLabeledInfo("Valid Until", validDate);
+
+    if (reportUser) {
+      setCandidateInfo(reportUser);
+    }
+  }
+
   function setupActivityTabs() {
     var root = document.querySelector(".activity-tabs");
     var testsTab;
@@ -1095,7 +1435,13 @@
     showPreloader();
 
     try {
+      if (isProtectedRoute(route) && !getStoredAuthToken()) {
+        window.location.href = "/login";
+        return;
+      }
+
       var response = await fetch(url.pathname + url.search, {
+        credentials: "same-origin",
         headers: { "X-Local-Navigation": "1" },
       });
 
@@ -1333,6 +1679,10 @@
     setupScoreReportButtons();
     setupLocalNavigation();
     await setupAuthChrome();
+    await setupDynamicActivityTests();
+    await setupDynamicScoreReport();
+    setupScoreReportButtons();
+    setupLocalNavigation();
     setupPasswordFields();
     setupAccountProfilePanels();
     setupAccountForms();

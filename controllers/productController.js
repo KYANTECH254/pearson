@@ -1,5 +1,6 @@
 const prisma = require("../lib/prisma");
 const { sendJson, parseJsonBody } = require("../lib/http");
+const { requireAdmin } = require("./userController");
 
 async function getProducts(req, res) {
   try {
@@ -14,6 +15,10 @@ async function getProducts(req, res) {
 }
 
 async function createProduct(req, res) {
+  if (!(await requireAdmin(req, res))) {
+    return;
+  }
+
   try {
     const body = await parseJsonBody(req);
     const product = await prisma.product.create({
@@ -37,6 +42,10 @@ async function createProduct(req, res) {
 }
 
 async function updateProduct(req, res, id) {
+  if (!(await requireAdmin(req, res))) {
+    return;
+  }
+
   try {
     const body = await parseJsonBody(req);
     const product = await prisma.product.update({
@@ -61,6 +70,10 @@ async function updateProduct(req, res, id) {
 }
 
 async function deleteProduct(req, res, id) {
+  if (!(await requireAdmin(req, res))) {
+    return;
+  }
+
   try {
     await prisma.product.delete({
       where: { id: parseInt(id) },

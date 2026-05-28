@@ -154,6 +154,11 @@
       <section>
         <h2>Create user</h2>
         <form id="userForm">
+          <input id="userId" name="id" type="hidden">
+
+          <label for="pteId">PTE ID</label>
+          <input id="pteId" name="pteId">
+
           <label for="firstName">First name</label>
           <input id="firstName" name="firstName" required>
 
@@ -175,7 +180,32 @@
             <option value="ADMIN">Admin</option>
           </select>
 
-          <button type="submit">Create user</button>
+          <label for="isActive">Active</label>
+          <select id="isActive" name="isActive">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+
+          <label for="birthDay">Birth day</label>
+          <input id="birthDay" name="birthDay" type="number" min="1" max="31">
+
+          <label for="birthMonth">Birth month</label>
+          <input id="birthMonth" name="birthMonth" type="number" min="1" max="12">
+
+          <label for="birthYear">Birth year</label>
+          <input id="birthYear" name="birthYear" type="number" min="1900" max="2100">
+
+          <label for="countryOfCitizenship">Country of citizenship</label>
+          <input id="countryOfCitizenship" name="countryOfCitizenship">
+
+          <label for="countryOfResidence">Country of residence</label>
+          <input id="countryOfResidence" name="countryOfResidence">
+
+          <label for="gender">Gender</label>
+          <input id="gender" name="gender">
+
+          <button id="saveUserButton" type="submit">Create user</button>
+          <button class="secondary" id="resetUserForm" type="button">New user</button>
           <div class="message" id="message"></div>
         </form>
       </section>
@@ -189,9 +219,107 @@
               <th>Username</th>
               <th>Email</th>
               <th>Role</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="users"></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Create test</h2>
+        <form id="testForm">
+          <input id="testId" name="id" type="hidden">
+
+          <label for="testUserId">User</label>
+          <select id="testUserId" name="userId" required></select>
+
+          <label for="testTitle">Title</label>
+          <input id="testTitle" name="title" required>
+
+          <label for="testScore">Score</label>
+          <input id="testScore" name="score" type="number" step="0.1">
+
+          <label for="testStatus">Status</label>
+          <input id="testStatus" name="status">
+
+          <label for="listeningScore">Listening score</label>
+          <input id="listeningScore" name="listeningScore" type="number" min="0" max="90">
+
+          <label for="readingScore">Reading score</label>
+          <input id="readingScore" name="readingScore" type="number" min="0" max="90">
+
+          <label for="speakingScore">Speaking score</label>
+          <input id="speakingScore" name="speakingScore" type="number" min="0" max="90">
+
+          <label for="writingScore">Writing score</label>
+          <input id="writingScore" name="writingScore" type="number" min="0" max="90">
+
+          <label for="testDate">Test date</label>
+          <input id="testDate" name="testDate" type="date">
+
+          <label for="testTime">Test time</label>
+          <input id="testTime" name="testTime" placeholder="1:30 PM">
+
+          <label for="registrationId">Registration ID</label>
+          <input id="registrationId" name="registrationId">
+
+          <label for="reportCode">Score report code</label>
+          <input id="reportCode" name="reportCode">
+
+          <label for="testCenterName">Test center</label>
+          <input id="testCenterName" name="testCenterName">
+
+          <label for="testCenterId">Test center ID</label>
+          <input id="testCenterId" name="testCenterId">
+
+          <label for="testCenterAddress1">Test center address 1</label>
+          <input id="testCenterAddress1" name="testCenterAddress1">
+
+          <label for="testCenterAddress2">Test center address 2</label>
+          <input id="testCenterAddress2" name="testCenterAddress2">
+
+          <label for="testCenterCity">Test center city</label>
+          <input id="testCenterCity" name="testCenterCity">
+
+          <label for="testCenterState">Test center state</label>
+          <input id="testCenterState" name="testCenterState">
+
+          <label for="testCenterCountry">Test center country</label>
+          <input id="testCenterCountry" name="testCenterCountry">
+
+          <label for="testCenterPostalCode">Test center postal code</label>
+          <input id="testCenterPostalCode" name="testCenterPostalCode">
+
+          <label for="timezone">Timezone</label>
+          <input id="timezone" name="timezone">
+
+          <label for="validUntil">Valid until</label>
+          <input id="validUntil" name="validUntil" type="date">
+
+          <label for="testDescription">Description</label>
+          <textarea id="testDescription" name="description"></textarea>
+
+          <button id="saveTestButton" type="submit">Save test</button>
+          <button class="secondary" id="resetTestForm" type="button">New test</button>
+          <div class="message" id="testsMessage"></div>
+        </form>
+      </section>
+
+      <section>
+        <h2>Saved tests</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Title</th>
+              <th>Score</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="tests"></tbody>
         </table>
       </section>
     </div>

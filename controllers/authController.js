@@ -4,9 +4,7 @@ const { parseCookies, parseJsonBody, sendJson } = require("../lib/http");
 const { hashPassword, verifyPassword } = require("../lib/password");
 const { assignPteId } = require("../lib/pteId");
 const { optionalProfileData } = require("../lib/userProfile");
-const { seedProducts } = require("./productController");
 
-const sessions = new Map();
 const sessionCookie = "pearson_session";
 const sessionMaxAgeSeconds = 60 * 60 * 24 * 30;
 const sessionCookieOptions = `Path=/; HttpOnly; SameSite=Lax; Max-Age=${sessionMaxAgeSeconds}`;
@@ -24,6 +22,10 @@ function signSessionPayload(payload) {
   return crypto.createHmac("sha256", sessionSecret).update(payload).digest("base64url");
 }
 
+function tokenHash(token) {
+  return crypto.createHash("sha256").update(String(token || "")).digest("hex");
+}
+
 function createSessionToken(user) {
   const payload = base64UrlEncode({
     userId: user.id,
@@ -34,6 +36,26 @@ function createSessionToken(user) {
   const signature = signSessionPayload(payload);
 
   return `v1.${payload}.${signature}`;
+}
+
+async function ensureSessionStore() {
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "AuthSession" (
+      "id" SERIAL PRIMARY KEY,
+      "tokenHash" TEXT NOT NULL UNIQUE,
+      "userId" INTEGER NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+      "expiresAt" TIMESTAMP(3) NOT NULL,
+      "revokedAt" TIMESTAMP(3),
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "AuthSession_userId_idx" ON "AuthSession"("userId")
+  `);
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "AuthSession_expiresAt_idx" ON "AuthSession"("expiresAt")
+  `);
 }
 
 function getSignedSession(token) {
@@ -100,6 +122,8 @@ async function ensureDefaultAdmin() {
 }
 
 async function ensureSeedLogins() {
+  const { seedProducts } = require("./productController");
+
   await ensureSeedUser({
     email: "kyan@example.com",
     username: "kyan",
@@ -134,9 +158,18 @@ async function ensureSeedUser(seed) {
   await assignPteId(prisma, user);
 }
 
-function setSession(user) {
+async function setSession(user) {
   const token = createSessionToken(user);
-  sessions.set(token, { userId: user.id, createdAt: Date.now() });
+  const session = getSignedSession(token);
+
+  await prisma.authSession.create({
+    data: {
+      tokenHash: tokenHash(token),
+      userId: user.id,
+      expiresAt: new Date(session.expiresAt),
+    },
+  });
+
   return token;
 }
 
@@ -144,16 +177,29 @@ async function currentUser(req) {
   const authHeader = String(req.headers.authorization || "");
   const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
   const token = bearerToken || parseCookies(req)[sessionCookie];
-  const session = token ? sessions.get(token) || getSignedSession(token) : null;
+  const signedSession = token ? getSignedSession(token) : null;
 
-  if (!session) {
+  if (!signedSession) {
+    return null;
+  }
+
+  const session = await prisma.authSession.findFirst({
+    where: {
+      tokenHash: tokenHash(token),
+      revokedAt: null,
+      expiresAt: { gt: new Date() },
+    },
+    select: { userId: true },
+  });
+
+  if (!session || Number(session.userId) !== Number(signedSession.userId)) {
     return null;
   }
 
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
 
   if (!user || !user.isActive) {
-    sessions.delete(token);
+    await revokeSession(token);
     return null;
   }
 
@@ -182,7 +228,7 @@ async function login(req, res) {
     return;
   }
 
-  const token = setSession(user);
+  const token = await setSession(user);
   sendJson(res, 200, { token, user: publicUser(user) }, {
     "Set-Cookie": `${sessionCookie}=${encodeURIComponent(token)}; ${sessionCookieOptions}`,
   });
@@ -214,7 +260,7 @@ async function register(req, res) {
       },
     });
     user = await assignPteId(prisma, user);
-    const token = setSession(user);
+    const token = await setSession(user);
 
     sendJson(res, 201, { token, user: publicUser(user) }, {
       "Set-Cookie": `${sessionCookie}=${encodeURIComponent(token)}; ${sessionCookieOptions}`,
@@ -246,7 +292,7 @@ async function logout(req, res) {
   const token = bearerToken || parseCookies(req)[sessionCookie];
 
   if (token) {
-    sessions.delete(token);
+    await revokeSession(token);
   }
 
   sendJson(res, 200, { ok: true }, {
@@ -254,9 +300,17 @@ async function logout(req, res) {
   });
 }
 
+async function revokeSession(token) {
+  await prisma.authSession.updateMany({
+    where: { tokenHash: tokenHash(token), revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
+}
+
 module.exports = {
   currentUser,
   ensureDefaultAdmin,
+  ensureSessionStore,
   login,
   logout,
   me,

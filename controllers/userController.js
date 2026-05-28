@@ -64,6 +64,7 @@ async function createUser(req, res) {
   try {
     let user = await prisma.user.create({
       data: {
+        pteId: String(body.pteId || "").trim() || undefined,
         email,
         username,
         passwordHash: await hashPassword(password),
@@ -79,6 +80,49 @@ async function createUser(req, res) {
   } catch (error) {
     if (error.code === "P2002") {
       sendJson(res, 409, { error: "Email or username already exists." });
+      return;
+    }
+
+    throw error;
+  }
+}
+
+function booleanFromBody(value) {
+  return value === true || value === "true" || value === "on" || value === "1";
+}
+
+async function updateAdminUser(req, res, id) {
+  if (!(await requireAdmin(req, res))) {
+    return;
+  }
+
+  const body = await parseJsonBody(req);
+  const data = optionalProfileData(body);
+
+  if (body.pteId !== undefined) data.pteId = String(body.pteId || "").trim() || null;
+  if (body.email !== undefined) data.email = String(body.email || "").trim().toLowerCase();
+  if (body.username !== undefined) data.username = String(body.username || "").trim();
+  if (body.firstName !== undefined) data.firstName = String(body.firstName || "").trim();
+  if (body.lastName !== undefined) data.lastName = String(body.lastName || "").trim();
+  if (body.role !== undefined) data.role = String(body.role || "USER").trim().toUpperCase() === "ADMIN" ? "ADMIN" : "USER";
+  if (body.isActive !== undefined) data.isActive = booleanFromBody(body.isActive);
+  if (body.password) data.passwordHash = await hashPassword(String(body.password));
+
+  try {
+    const user = await prisma.user.update({
+      where: { id: Number(id) },
+      data,
+    });
+
+    sendJson(res, 200, { user: publicUser(user) });
+  } catch (error) {
+    if (error.code === "P2025") {
+      sendJson(res, 404, { error: "User not found." });
+      return;
+    }
+
+    if (error.code === "P2002") {
+      sendJson(res, 409, { error: "Email, username, or PTE ID already exists." });
       return;
     }
 
@@ -167,8 +211,10 @@ async function updatePrivacy(req, res) {
 module.exports = {
   createUser,
   listUsers,
+  updateAdminUser,
   updateProfile,
   updatePassword,
   updatePrivacy,
+  requireUser,
+  requireAdmin,
 };
-

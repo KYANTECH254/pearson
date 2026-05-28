@@ -22,8 +22,9 @@ function loadEnv() {
 
 loadEnv();
 
-const { login, logout, me, register, ensureDefaultAdmin } = require("./controllers/authController");
-const { createUser, listUsers, updateProfile, updatePassword, updatePrivacy } = require("./controllers/userController");
+const { login, logout, me, register, ensureDefaultAdmin, ensureSessionStore, currentUser } = require("./controllers/authController");
+const { createUser, listUsers, updateAdminUser, updateProfile, updatePassword, updatePrivacy } = require("./controllers/userController");
+const { listUserTests, createUserTest, listAllTests, createAdminTest, updateAdminTest, getUserTest, ensureScoreReportStore } = require("./controllers/testController");
 const { getProducts, createProduct, updateProduct, deleteProduct } = require("./controllers/productController");
 const { databaseTarget, isDatabaseConnectionError } = require("./lib/databaseErrors");
 const { sendJson } = require("./lib/http");
@@ -147,6 +148,44 @@ async function handleApiRequest(req, res, pathname) {
       return true;
     }
 
+    if (pathname.startsWith("/api/admin/users/") && req.method === "PUT") {
+      const id = pathname.split("/").pop();
+      await updateAdminUser(req, res, id);
+      return true;
+    }
+
+    if (pathname === "/api/admin/tests" && req.method === "GET") {
+      await listAllTests(req, res);
+      return true;
+    }
+
+    if (pathname === "/api/admin/tests" && req.method === "POST") {
+      await createAdminTest(req, res);
+      return true;
+    }
+
+    if (pathname.startsWith("/api/admin/tests/") && req.method === "PUT") {
+      const id = pathname.split("/").pop();
+      await updateAdminTest(req, res, id);
+      return true;
+    }
+
+    if (pathname === "/api/user/tests" && req.method === "GET") {
+      await listUserTests(req, res);
+      return true;
+    }
+
+    if (pathname.startsWith("/api/user/tests/") && req.method === "GET") {
+      const id = pathname.split("/").pop();
+      await getUserTest(req, res, id);
+      return true;
+    }
+
+    if (pathname === "/api/user/tests" && req.method === "POST") {
+      await createUserTest(req, res);
+      return true;
+    }
+
     if (pathname === "/api/user/profile" && req.method === "POST") {
       await updateProfile(req, res);
       return true;
@@ -203,10 +242,59 @@ async function handleApiRequest(req, res, pathname) {
   }
 }
 
+function shouldProtectPage(pathname) {
+  const protectedPages = new Set([
+    "/",
+    "/activity",
+    "/admin",
+    "/account",
+    "/cart",
+    "/dashboard",
+    "/learn",
+    "/my-activity",
+    "/myPTE",
+    "/mypte",
+    "/users/edit-user-account",
+    "/users/edit-user-account/collapse",
+  ]);
+
+  if (protectedPages.has(pathname)) {
+    return true;
+  }
+
+  return /^\/my-activity\/test-score\/[^/]+$/.test(pathname);
+}
+
+async function authorizePageAccess(req, res, pathname) {
+  if (!shouldProtectPage(pathname)) {
+    return false;
+  }
+
+  const user = await currentUser(req);
+
+  if (!user) {
+    res.writeHead(302, { Location: "/login" });
+    res.end();
+    return true;
+  }
+
+  if (pathname === "/admin" && user.role !== "ADMIN") {
+    res.writeHead(302, { Location: "/login" });
+    res.end();
+    return true;
+  }
+
+  return false;
+}
+
 async function handleRequest(req, res) {
   const url = new URL(req.url || "/", "http://localhost");
 
   if (await handleApiRequest(req, res, url.pathname)) {
+    return;
+  }
+
+  if (await authorizePageAccess(req, res, url.pathname)) {
     return;
   }
 
@@ -251,7 +339,9 @@ function listen(port, attemptsLeft = 10) {
   });
 }
 
-ensureDefaultAdmin()
+ensureSessionStore()
+  .then(ensureDefaultAdmin)
+  .then(ensureScoreReportStore)
   .then(() => listen(preferredPort))
   .catch((error) => {
     if (isDatabaseConnectionError(error)) {

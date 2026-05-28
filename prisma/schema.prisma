@@ -8,53 +8,109 @@ datasource db {
 }
 
 model User {
-  id                    Int       @id @default(autoincrement())
-  pteId                 String?   @unique
-  email                 String    @unique
-  username              String    @unique
-  passwordHash          String
-  firstName             String
-  lastName              String
-  role                  String    @default("USER")
-  isActive              Boolean   @default(true)
-  avatarUrl             String?
-  countryOfResidence    String?
-  dateOfBirth           DateTime?
-  birthDay              Int?
-  birthMonth            Int?
-  birthYear             Int?
-  gender                String?
-  cityOfBirth           String?
-  countryOfBirth        String?
-  countryOfCitizenship  String?
-  streetAddress         String?
-  city                  String?
-  phoneCountryCode      String?
-  primaryPhone          String?
-  accommodationsNeeded  Boolean   @default(false)
-  smsConsent            Boolean   @default(false)
-  communicationConsent  Boolean   @default(false)
-  researchConsent       Boolean   @default(false)
-  parentalConsentForm   String?
-  deliveredBy           String?
-  inSimplifiedChinese   Boolean   @default(false)
-  noGivenNames          Boolean   @default(false)
-  noLastName            Boolean   @default(false)
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  id                   Int           @id @default(autoincrement())
+  pteId                String?       @unique
+  email                String        @unique
+  username             String        @unique
+  passwordHash         String
+  firstName            String
+  lastName             String
+  role                 String        @default("USER")
+  isActive             Boolean       @default(true)
+  avatarUrl            String?
+  countryOfResidence   String?
+  dateOfBirth          DateTime?
+  birthDay             Int?
+  birthMonth           Int?
+  birthYear            Int?
+  gender               String?
+  cityOfBirth          String?
+  countryOfBirth       String?
+  countryOfCitizenship String?
+  streetAddress        String?
+  city                 String?
+  phoneCountryCode     String?
+  primaryPhone         String?
+  accommodationsNeeded Boolean       @default(false)
+  smsConsent           Boolean       @default(false)
+  communicationConsent Boolean       @default(false)
+  researchConsent      Boolean       @default(false)
+  parentalConsentForm  String?
+  deliveredBy          String?
+  inSimplifiedChinese  Boolean       @default(false)
+  noGivenNames         Boolean       @default(false)
+  noLastName           Boolean       @default(false)
+  tests                Test[]
+  sessions             AuthSession[]
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+}
+
+model AuthSession {
+  id        Int       @id @default(autoincrement())
+  tokenHash String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Product {
   id          Int      @id @default(autoincrement())
   title       String
-  category    String   // "PTE Academic", "PTE Core"
-  type        String   // "Individual", "Package"
+  category    String // "PTE Academic", "PTE Core"
+  type        String // "Individual", "Package"
   description String?
   price       Float
   currency    String   @default("AU$")
   imageUrl    String?
-  variants    Json?    // For storing options like "Versions available"
+  variants    Json? // For storing options like "Versions available"
   isAvailable Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Test {
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
+  title       String
+  description String?
+  score       Float?
+  status      String?
+  testDate    DateTime @default(now())
+  metadata    Json?
+  scoreReport TestScoreReport?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model TestScoreReport {
+  id                   Int      @id @default(autoincrement())
+  test                 Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  testId               Int      @unique
+  reportCode           String?
+  registrationId       String?
+  testCenterName       String?
+  testCenterAddress1   String?
+  testCenterAddress2   String?
+  testCenterCity       String?
+  testCenterState      String?
+  testCenterCountry    String?
+  testCenterPostalCode String?
+  timezone             String?
+  overallScore         Int?
+  listeningScore       Int?
+  readingScore         Int?
+  speakingScore        Int?
+  writingScore         Int?
+  validUntil           DateTime?
+  metadata             Json?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
