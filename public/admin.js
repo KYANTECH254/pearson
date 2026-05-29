@@ -12,6 +12,7 @@
   var avatarPreview = document.getElementById("avatarPreview");
   var userCount = document.getElementById("userCount");
   var testCount = document.getElementById("testCount");
+  var tabButtons = Array.from(document.querySelectorAll("[data-admin-tab]"));
   var userItems = [];
   var testItems = [];
 
@@ -23,6 +24,16 @@
   function setTestsMessage(text, isError) {
     testsMessage.textContent = text || "";
     testsMessage.style.color = isError ? "#b00020" : "#206b31";
+  }
+
+  function activateTab(tabId) {
+    document.querySelectorAll(".admin-page").forEach(function (page) {
+      page.classList.toggle("is-active", page.id === tabId);
+    });
+
+    tabButtons.forEach(function (button) {
+      button.classList.toggle("is-active", button.dataset.adminTab === tabId);
+    });
   }
 
   function getStoredAuthToken() {
@@ -172,6 +183,7 @@
   }
 
   function fillUserForm(user) {
+    activateTab("usersPage");
     setFormValue(form, "id", user.id);
     setFormValue(form, "pteId", user.pteId);
     setFormValue(form, "firstName", user.firstName);
@@ -195,6 +207,7 @@
   }
 
   function fillTestForm(test) {
+    activateTab("testsPage");
     var report = test.scoreReport || {};
     var metadata = report.metadata || test.metadata || {};
 
@@ -240,7 +253,7 @@
         "<div class=\"record-card__meta\">" + escapeHtml(user.email) + "</div>",
         "<div class=\"record-card__meta\">" + escapeHtml(user.username) + " · " + escapeHtml(user.role) + "</div>",
         "</div>",
-        "<div class=\"record-card__actions\"><a href=\"#\" data-user-id=\"" + user.id + "\">Edit</a></div>",
+        "<div class=\"record-card__actions\"><a href=\"#\" data-user-id=\"" + user.id + "\">Edit</a><button class=\"danger-link\" type=\"button\" data-delete-user-id=\"" + user.id + "\">Delete</button></div>",
         "</article>",
       ].join("");
     }).join("");
@@ -266,7 +279,7 @@
         "<div class=\"record-card__meta\">" + escapeHtml(test.user ? test.user.firstName + " " + test.user.lastName : "Unknown") + "</div>",
         "<div class=\"record-card__meta\">" + new Date(test.testDate).toLocaleDateString() + " · " + escapeHtml(test.status || report.registrationId || "-") + "</div>",
         "</div>",
-        "<div class=\"record-card__actions\"><a href=\"#\" data-test-id=\"" + test.id + "\">Edit</a><a href=\"/my-activity/test-score/" + encodeURIComponent(test.id) + "\">View score</a></div>",
+        "<div class=\"record-card__actions\"><a href=\"#\" data-test-id=\"" + test.id + "\">Edit</a><a href=\"/my-activity/test-score/" + encodeURIComponent(test.id) + "\">View score</a><button class=\"danger-link\" type=\"button\" data-delete-test-id=\"" + test.id + "\">Delete</button></div>",
         "</article>",
       ].join("");
     }).join("");
@@ -283,6 +296,12 @@
   }
 
   takeTokenFromUrl();
+
+  tabButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
+      activateTab(button.dataset.adminTab);
+    });
+  });
 
   request("/api/auth/me").then(function (data) {
     if (!data.user || data.user.role !== "ADMIN") {
@@ -370,7 +389,27 @@
   });
 
   users.addEventListener("click", function (event) {
+    var deleteTrigger = event.target.closest("[data-delete-user-id]");
     var trigger = event.target.closest("[data-user-id]");
+
+    if (deleteTrigger) {
+      event.preventDefault();
+
+      if (!window.confirm("Delete this user and all of their tests?")) {
+        return;
+      }
+
+      request("/api/admin/users/" + encodeURIComponent(deleteTrigger.dataset.deleteUserId), {
+        method: "DELETE",
+      }).then(async function () {
+        resetUserForm();
+        setMessage("User deleted.");
+        await Promise.all([loadUsers(), loadTests()]);
+      }).catch(function (error) {
+        setMessage(error.message, true);
+      });
+      return;
+    }
 
     if (!trigger) {
       return;
@@ -387,7 +426,27 @@
   });
 
   tests.addEventListener("click", function (event) {
+    var deleteTrigger = event.target.closest("[data-delete-test-id]");
     var trigger = event.target.closest("[data-test-id]");
+
+    if (deleteTrigger) {
+      event.preventDefault();
+
+      if (!window.confirm("Delete this test?")) {
+        return;
+      }
+
+      request("/api/admin/tests/" + encodeURIComponent(deleteTrigger.dataset.deleteTestId), {
+        method: "DELETE",
+      }).then(async function () {
+        resetTestForm();
+        setTestsMessage("Test deleted.");
+        await loadTests();
+      }).catch(function (error) {
+        setTestsMessage(error.message, true);
+      });
+      return;
+    }
 
     if (!trigger) {
       return;

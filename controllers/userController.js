@@ -150,8 +150,10 @@ async function deleteAdminUser(req, res, id) {
   }
 
   try {
-    await prisma.user.delete({
-      where: { id: userId },
+    await prisma.$transaction(async (tx) => {
+      await tx.test.deleteMany({ where: { userId } });
+      await tx.authSession.deleteMany({ where: { userId } });
+      await tx.user.delete({ where: { id: userId } });
     });
 
     sendJson(res, 200, { ok: true });

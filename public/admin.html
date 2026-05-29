@@ -6,6 +6,7 @@
   <title>Admin | myPTE</title>
   <link rel="icon" href="/favicon.ico">
   <link rel="stylesheet" href="/assets/cdn.pearsonpte.com/assets/fonts/plus-jakarta-sans/plus-jakarta-sans.css">
+  <link rel="stylesheet" href="/assets/cdn.pearsonpte.com/ignite-design__v_6_1_1.css">
   <style>
     :root {
       --purple: #5c2d91;
@@ -26,7 +27,7 @@
     body {
       background: #f5f7f8;
       color: var(--ink);
-      font-family: "Plus Jakarta Sans", Arial, sans-serif;
+      font-family: var(--ignite-regular-font, "Jakarta Sans Regular", "Plus Jakarta Sans", Arial, sans-serif);
       margin: 0;
     }
 
@@ -66,20 +67,24 @@
       margin: 26px 0;
     }
 
-    .sidebar-nav a {
+    .sidebar-nav button {
+      background: transparent;
       border-radius: 6px;
       color: #333;
       display: block;
       font-size: 14px;
       font-weight: 700;
+      min-height: 44px;
       padding: 12px 14px;
-      text-decoration: none;
+      text-align: left;
+      width: 100%;
     }
 
-    .sidebar-nav a:hover,
-    .sidebar-nav a.is-active {
+    .sidebar-nav button:hover,
+    .sidebar-nav button.is-active {
       background: rgba(0, 127, 163, 0.1);
       color: var(--teal);
+      filter: none;
     }
 
     h1 {
@@ -154,6 +159,14 @@
       display: grid;
       gap: 24px;
       grid-template-columns: minmax(360px, 430px) minmax(0, 1fr);
+    }
+
+    .admin-page {
+      display: none;
+    }
+
+    .admin-page.is-active {
+      display: block;
     }
 
     section {
@@ -296,6 +309,18 @@
       text-decoration: none;
     }
 
+    .danger-link {
+      background: transparent;
+      color: #b00020;
+      min-height: 0;
+      padding: 0;
+    }
+
+    .danger-link:hover {
+      filter: none;
+      text-decoration: underline;
+    }
+
     @media (max-width: 980px) {
       .admin-shell,
       .layout {
@@ -334,8 +359,8 @@
       <aside class="sidebar">
         <div class="brand">myPTE Admin</div>
         <nav class="sidebar-nav" aria-label="Admin sections">
-          <a class="is-active" href="#usersPanel">Users</a>
-          <a href="#testsPanel">Tests</a>
+          <button class="is-active" type="button" data-admin-tab="usersPage">Users</button>
+          <button type="button" data-admin-tab="testsPage">Tests</button>
         </nav>
         <div class="stats">
           <div class="stat"><strong id="userCount">0</strong><span>Users</span></div>
@@ -353,6 +378,7 @@
             <p>Manage local users, uploaded candidate images, and score report data.</p>
           </div>
         </div>
+        <div class="admin-page is-active" id="usersPage">
         <div class="layout">
       <section>
         <div class="section-head">
@@ -434,8 +460,12 @@
         </div>
         <div class="record-list" id="users"></div>
       </section>
+        </div>
+        </div>
 
-      <section id="testsPanel">
+        <div class="admin-page" id="testsPage">
+        <div class="layout">
+      <section>
         <div class="section-head">
           <div>
             <h2>Create test</h2>
@@ -522,7 +552,7 @@
         </form>
       </section>
 
-      <section>
+      <section id="testsPanel">
         <div class="section-head">
           <div>
             <h2>Saved tests</h2>
@@ -531,6 +561,7 @@
         </div>
         <div class="record-list" id="tests"></div>
       </section>
+        </div>
         </div>
       </div>
     </div>
