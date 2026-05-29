@@ -1116,3 +1116,164 @@ empty-cart .empty-cart-container button {
     right: 0 !important;
   }
 }
+
+.local-learn-purchases {
+  margin: 0 auto;
+  max-width: 1100px;
+  padding: 0 0 40px;
+  width: 100%;
+}
+
+.local-learn-purchases .banner-container {
+  margin: 0 auto 24px;
+  max-width: 1040px;
+}
+
+.local-learn-purchases .banner-container .image {
+  background-image: url("/assets/learn/purchases-banner.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  border-radius: 8px;
+  min-height: 164px;
+  width: 100%;
+}
+
+.local-learn-purchases .learn-items-container {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  margin: 0 auto;
+  max-width: 1040px;
+  overflow: hidden;
+}
+
+.local-learn-purchases .mat-mdc-tab-header {
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.local-learn-purchases .mat-mdc-tab-label-container,
+.local-learn-purchases .mat-mdc-tab-list,
+.local-learn-purchases .mat-mdc-tab-labels {
+  width: 100%;
+}
+
+.local-learn-purchases .mat-mdc-tab {
+  flex: 1 1 0;
+  height: 56px;
+}
+
+.local-learn-purchases .mdc-tab__text-label {
+  color: #3a3a3a;
+  font-family: var(--ignite-semibold-font, Arial, sans-serif);
+  font-size: 16px;
+}
+
+.local-learn-purchases .mdc-tab--active .mdc-tab__text-label {
+  color: var(--pearson-primary-color, #007fa3);
+}
+
+.local-learn-purchases .mdc-tab-indicator__content--underline {
+  border-color: var(--pearson-primary-color, #007fa3);
+  border-top-width: 3px;
+}
+
+.local-learn-purchases .mat-mdc-tab-body-content {
+  box-sizing: border-box;
+  padding: 32px;
+}
+
+.local-learn-purchases test-taker-purchased-scored-practice-tests,
+.local-learn-purchases test-taker-learn-materials {
+  display: block;
+}
+
+.local-learn-purchases test-taker-purchased-scored-practice-tests > .title,
+.local-learn-purchases test-taker-learn-materials > .title {
+  color: #333;
+  font-family: var(--ignite-bold-font, Arial, sans-serif);
+  font-size: 22px;
+  line-height: 30px;
+  margin-bottom: 18px;
+}
+
+.local-learn-purchases .no-purchases {
+  align-items: center;
+  background: #fafafa;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32px;
+  min-height: 168px;
+  padding: 24px;
+  text-align: center;
+}
+
+.local-learn-purchases .no-purchases-container .title {
+  color: #333;
+  font-family: var(--ignite-semibold-font, Arial, sans-serif);
+  font-size: 18px;
+  line-height: 26px;
+  margin-bottom: 20px;
+}
+
+.local-learn-purchases test-taker-learn-materials .text {
+  color: #333;
+  font-size: 14px;
+  line-height: 22px;
+  margin-bottom: 20px;
+}
+
+.local-learn-purchases test-taker-learn-materials .text a {
+  color: var(--pearson-primary-color, #007fa3);
+  cursor: pointer;
+  font-family: var(--ignite-semibold-font, Arial, sans-serif);
+}
+
+.local-learn-purchases .cards {
+  display: grid;
+  gap: 16px;
+}
+
+.local-learn-purchases mat-card {
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.local-learn-purchases mat-card-content {
+  display: block;
+  padding: 0;
+}
+
+.local-learn-purchases .action-content {
+  align-items: center;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  padding: 22px 24px;
+}
+
+.local-learn-purchases .product-name {
+  color: var(--pearson-purple-color, #5c2d91);
+  font-family: var(--ignite-semibold-font, Arial, sans-serif);
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.local-learn-purchases .ignite-button {
+  min-width: 160px;
+}
+
+@media screen and (max-width: 640px) {
+  .local-learn-purchases .mat-mdc-tab-body-content {
+    padding: 20px;
+  }
+
+  .local-learn-purchases .action-content {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

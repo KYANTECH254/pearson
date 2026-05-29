@@ -1657,18 +1657,20 @@
   async function setupDashboardLatestTest() {
     var route = getRoute(new URL(window.location.href));
     var data;
+    var test;
 
     if (route !== "/" && route !== "/dashboard" && route !== "/myPTE" && route !== "/mypte") {
       return;
     }
 
-    data = await apiJson("/api/user/tests/latest").catch(function () {
-      return { test: null };
+    data = await apiJson("/api/user/tests").catch(function () {
+      return { tests: [] };
     });
+    test = data.tests && data.tests.length ? data.tests[0] : null;
 
-    if (data.test) {
-      setDashboardRebookCard(data.test);
-      setDashboardScoreCard(data.test);
+    if (test) {
+      setDashboardRebookCard(test);
+      setDashboardScoreCard(test);
     } else {
       clearDashboardRebookCard();
       setDashboardScoreCard(null);
@@ -1786,9 +1788,17 @@
     }
 
     id = route.split("/").pop();
-    data = await apiJson("/api/user/tests/" + encodeURIComponent(id)).catch(function () {
-      return { test: null };
-    });
+    if (id === "latest") {
+      data = await apiJson("/api/user/tests").then(function (payload) {
+        return { test: payload.tests && payload.tests.length ? payload.tests[0] : null };
+      }).catch(function () {
+        return { test: null };
+      });
+    } else {
+      data = await apiJson("/api/user/tests/" + encodeURIComponent(id)).catch(function () {
+        return { test: null };
+      });
+    }
     auth = await apiJson("/api/auth/me").catch(function () {
       return {};
     });
@@ -2026,6 +2036,147 @@
     ].join("");
   }
 
+  function renderPurchaseMaterials(exam) {
+    var isCore = exam === "pte-core";
+    var products = isCore
+      ? ["PTE Core Question Bank", "Official Guide to PTE Core", "PTE Core - Self Study Guide"]
+      : ["PTE Academic Question Bank", "Official Guide to PTE Academic", "PTE Expert - Self Study Guide B1/B2"];
+
+    return [
+      '<test-taker-purchased-scored-practice-tests class="ng-star-inserted">',
+      '<div class="title">Practice Tests</div>',
+      '<div class="no-purchases ng-star-inserted">',
+      '<div class="no-purchases-container">',
+      "<div class=\"title\">You haven't purchased any scored practice tests</div>",
+      '<div class="ignite-dialog-buttons-container"><button id="goto-shopping" type="button" class="mdc-button mat-mdc-button-base ignite-button mat-mdc-button mat-secondary"><span class="mdc-button__label"> Visit store </span></button></div>',
+      '</div>',
+      '</div>',
+      '</test-taker-purchased-scored-practice-tests>',
+      '<test-taker-learn-materials class="ng-star-inserted">',
+      '<div class="title">Other learning materials</div>',
+      "<div class=\"text ng-star-inserted\"> Note: For first-time access, you'll need to go to the Pearson English Portal, create an account and enter the access code received in your confirmation email.<br><br><b>Don't have a code?</b> Get a code when you buy these learning materials from the <a id=\"goto-shopping-link\">Store</a>. </div>",
+      '<div class="cards ng-star-inserted">',
+      products.map(function (name) {
+        return [
+          '<mat-card ignite-dashboard-card class="mat-mdc-card mdc-card ignite-dashboard-card ng-star-inserted">',
+          '<mat-card-content class="mat-mdc-card-content">',
+          '<div class="card-content">',
+          '<div class="action-content">',
+          '<div class="product-name"> ' + escapeHtml(name) + ' </div>',
+          '<div class="button-container">',
+          '<div class="button-content">',
+          '<div class="ignite-dialog-buttons-container"><button type="button" class="mdc-button mat-mdc-button-base ignite-button mat-mdc-button mat-primary local-access-code-button"><span class="mdc-button__label"> Access with code </span></button></div>',
+          '</div>',
+          '</div>',
+          '</div>',
+          '</div>',
+          '</mat-card-content>',
+          '</mat-card>',
+        ].join("");
+      }).join(""),
+      '</div>',
+      '</test-taker-learn-materials>',
+    ].join("");
+  }
+
+  function activateLearnPurchasesExamTab(exam) {
+    var root = document.querySelector("test-taker-learn-purchases");
+    var isCore = exam === "pte-core";
+    var academicTab = root ? root.querySelector("#local-purchases-label-0") : null;
+    var coreTab = root ? root.querySelector("#local-purchases-label-1") : null;
+    var academicBody = root ? root.querySelector("#local-purchases-content-0") : null;
+    var coreBody = root ? root.querySelector("#local-purchases-content-1") : null;
+
+    if (!root || !academicTab || !coreTab || !academicBody || !coreBody) {
+      return;
+    }
+
+    setActivityTabLabel(academicTab, !isCore);
+    setActivityTabLabel(coreTab, isCore);
+    setActivityTabBody(academicBody, !isCore, "left");
+    setActivityTabBody(coreBody, isCore, "right");
+  }
+
+  function setupLearnPurchasesActions(root) {
+    root.querySelectorAll("#goto-shopping, #goto-shopping-link").forEach(function (node) {
+      if (node.dataset.localPurchasesStoreReady === "true") {
+        return;
+      }
+
+      node.dataset.localPurchasesStoreReady = "true";
+      node.addEventListener("click", function (event) {
+        event.preventDefault();
+        activateLearnTab("store");
+        updateLearnUrl("store");
+        setupLearnTabs();
+      });
+    });
+
+    root.querySelectorAll(".local-access-code-button").forEach(function (button) {
+      if (button.dataset.localAccessCodeReady === "true") {
+        return;
+      }
+
+      button.dataset.localAccessCodeReady = "true";
+      button.addEventListener("click", function () {
+        window.open("https://english-dashboard.pearson.com/", "_blank", "noopener");
+      });
+    });
+  }
+
+  function renderLearnPurchases() {
+    var body = document.querySelector("#mat-tab-group-0-content-1 .mat-mdc-tab-body-content");
+
+    if (!body) {
+      return;
+    }
+
+    body.innerHTML = [
+      '<test-taker-learn-purchases class="ng-star-inserted">',
+      '<div class="learn-purchases-container ng-star-inserted local-learn-purchases">',
+      '<div class="banner-container"><div class="image">&nbsp;</div></div>',
+      '<div class="learn-items-container">',
+      '<mat-tab-group animationduration="0ms" class="mat-mdc-tab-group mat-primary mat-mdc-tab-group-stretch-tabs" style="--mat-tab-animation-duration: 0ms;">',
+      '<mat-tab-header class="mat-mdc-tab-header">',
+      '<div class="mat-ripple mat-mdc-tab-header-pagination mat-mdc-tab-header-pagination-before mat-mdc-tab-header-pagination-disabled"><div class="mat-mdc-tab-header-pagination-chevron"></div></div>',
+      '<div class="mat-mdc-tab-label-container">',
+      '<div role="tablist" class="mat-mdc-tab-list" style="transform: translateX(0px);">',
+      '<div class="mat-mdc-tab-labels">',
+      '<div role="tab" class="mdc-tab mat-mdc-tab mat-focus-indicator mdc-tab--active mdc-tab-indicator--active" id="local-purchases-label-0" tabindex="0" aria-posinset="1" aria-setsize="2" aria-controls="local-purchases-content-0" aria-selected="true" aria-disabled="false"><span class="mdc-tab__ripple"></span><div class="mat-ripple mat-mdc-tab-ripple"></div><span class="mdc-tab__content"><span class="mdc-tab__text-label"><span class="label-text menu-style">PTE Academic</span></span></span><span class="mdc-tab-indicator"><span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span></span></div>',
+      '<div role="tab" class="mdc-tab mat-mdc-tab mat-focus-indicator" id="local-purchases-label-1" tabindex="-1" aria-posinset="2" aria-setsize="2" aria-controls="local-purchases-content-1" aria-selected="false" aria-disabled="false"><span class="mdc-tab__ripple"></span><div class="mat-ripple mat-mdc-tab-ripple"></div><span class="mdc-tab__content"><span class="mdc-tab__text-label"><span class="label-text menu-style">PTE Core</span></span></span><span class="mdc-tab-indicator"><span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span></span></div>',
+      '</div>',
+      '</div>',
+      '</div>',
+      '<div class="mat-ripple mat-mdc-tab-header-pagination mat-mdc-tab-header-pagination-after mat-mdc-tab-header-pagination-disabled"><div class="mat-mdc-tab-header-pagination-chevron"></div></div>',
+      '</mat-tab-header>',
+      '<div class="mat-mdc-tab-body-wrapper _mat-animation-noopable">',
+      '<mat-tab-body role="tabpanel" class="mat-mdc-tab-body mat-mdc-tab-body-active" id="local-purchases-content-0" aria-labelledby="local-purchases-label-0" aria-hidden="false"><div class="mat-mdc-tab-body-content mat-tab-body-content-can-animate">' + renderPurchaseMaterials("pte-academic") + '</div></mat-tab-body>',
+      '<mat-tab-body role="tabpanel" class="mat-mdc-tab-body" id="local-purchases-content-1" aria-labelledby="local-purchases-label-1" aria-hidden="true" inert=""><div class="mat-mdc-tab-body-content mat-tab-body-content-can-animate mat-tab-body-content-right">' + renderPurchaseMaterials("pte-core") + '</div></mat-tab-body>',
+      '</div>',
+      '</mat-tab-group>',
+      '</div>',
+      '</div>',
+      '</test-taker-learn-purchases>',
+    ].join("");
+
+    body.querySelector("#local-purchases-label-0").addEventListener("click", function () {
+      activateLearnPurchasesExamTab("pte-academic");
+    });
+    body.querySelector("#local-purchases-label-1").addEventListener("click", function () {
+      activateLearnPurchasesExamTab("pte-core");
+    });
+    [body.querySelector("#local-purchases-label-0"), body.querySelector("#local-purchases-label-1")].forEach(function (tab) {
+      tab.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          tab.click();
+        }
+      });
+    });
+
+    setupLearnPurchasesActions(body);
+  }
+
   function renderFreeResources(resources, journeyId, sectionId) {
     var body = document.querySelector("#mat-tab-group-0-content-2 .mat-mdc-tab-body-content");
     var journey = resources.find(function (item) {
@@ -2211,6 +2362,10 @@
         activateLearnTab(item.view);
         updateLearnUrl(item.view, nextJourney);
 
+        if (item.view === "my-purchases") {
+          renderLearnPurchases();
+        }
+
         if (item.view === "free-resources") {
           setupLearnTabs();
         }
@@ -2227,6 +2382,10 @@
 
     activateLearnTab(view);
     setupLearnStoreExamTabs();
+
+    if (view === "my-purchases") {
+      renderLearnPurchases();
+    }
 
     if (view === "store") {
       activateLearnStoreExamTab(params.get("journeyId") === "pte-core" ? "pte-core" : "pte-academic");

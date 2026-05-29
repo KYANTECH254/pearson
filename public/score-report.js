@@ -108,7 +108,7 @@
     }
 
     authData = await authResponse.json();
-    response = await fetch("/api/user/tests/" + encodeURIComponent(id), {
+    response = await fetch(id === "latest" ? "/api/user/tests" : "/api/user/tests/" + encodeURIComponent(id), {
       credentials: "same-origin",
       headers: headers,
     });
@@ -118,7 +118,7 @@
     }
 
     data = await response.json();
-    test = data.test || null;
+    test = id === "latest" ? (data.tests && data.tests.length ? data.tests[0] : null) : data.test || null;
 
     if (test && authData.user && Number(test.userId) !== Number(authData.user.id)) {
       test = null;
