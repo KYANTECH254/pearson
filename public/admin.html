@@ -29,6 +29,8 @@
       color: var(--ink);
       font-family: var(--ignite-regular-font, "Jakarta Sans Regular", "Plus Jakarta Sans", Arial, sans-serif);
       margin: 0;
+      height: 100vh;
+      overflow: hidden;
     }
 
     .brand {
@@ -41,6 +43,7 @@
       margin: 0 auto;
       max-width: 1480px;
       padding: 24px clamp(18px, 3vw, 36px) 48px;
+      height: 100%;
     }
 
     .admin-shell {
@@ -48,6 +51,35 @@
       display: grid;
       gap: 24px;
       grid-template-columns: 260px minmax(0, 1fr);
+      height: 100%;
+    }
+
+    .admin-content-column {
+      height: 100%;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: transparent transparent;
+    }
+
+    .admin-content-column:hover {
+      scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    }
+
+    .admin-content-column::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .admin-content-column::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .admin-content-column::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: 3px;
+    }
+
+    .admin-content-column:hover::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.15);
     }
 
     .sidebar {
@@ -55,10 +87,32 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       box-shadow: 0 12px 30px rgba(32, 32, 32, 0.05);
-      min-height: calc(100vh - 48px);
+      height: 100%;
+      overflow-y: auto;
       padding: 22px;
-      position: sticky;
-      top: 24px;
+      scrollbar-width: thin;
+      scrollbar-color: transparent transparent;
+    }
+
+    .sidebar:hover {
+      scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: 2px;
+    }
+
+    .sidebar:hover::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.1);
     }
 
     .sidebar-nav {
@@ -322,13 +376,32 @@
     }
 
     @media (max-width: 980px) {
-      .admin-shell,
+      body {
+        height: auto;
+        overflow: auto;
+      }
+
+      main {
+        height: auto;
+      }
+
+      .admin-shell {
+        display: block;
+        height: auto;
+      }
+
+      .admin-content-column {
+        height: auto;
+        overflow-y: visible;
+      }
+
       .layout {
         grid-template-columns: 1fr;
       }
 
       .sidebar {
-        min-height: 0;
+        height: auto;
+        overflow-y: visible;
         position: static;
       }
 
@@ -371,7 +444,7 @@
         </div>
       </aside>
 
-      <div>
+      <div class="admin-content-column">
         <div class="hero">
           <div>
             <h1>Admin dashboard</h1>

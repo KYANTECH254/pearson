@@ -1,7 +1,7 @@
 (function () {
   var defaultScoreReportPath = "/my-activity/test-score/69ee8736b59b9ff4b555f82e";
   var loginRoute = "/Account/Login";
-  var loginRedirectUrl = "https://id.mypte.pearsonpte.com" + loginRoute;
+  var loginRedirectUrl = window.location.origin + loginRoute;
   var cartRoute = "/orders/shoppingcart";
   var internalRoutes = new Set([
     "/",
@@ -88,6 +88,55 @@
 
     if (!trigger || !popup || trigger.dataset.localToggleReady === "true") {
       return;
+    }
+
+    // Add mobile navigation items if they don't exist
+    if (!popup.querySelector(".mobile-only")) {
+      var accountItem = popup.querySelector('[id*="edit-user-account"], [id*="account-profile-item"]');
+      var mobileItems = [
+        { label: "myPTE", icon: "fa-home", route: "/" },
+        { label: "My Activity", icon: "fa-history", route: "/my-activity" },
+        { label: "Smart Prep", icon: "fa-graduation-cap", route: "/learn" },
+        { label: "Help", icon: "fa-question-circle", url: "https://www.pearsonpte.com/help-center/" },
+      ];
+
+      mobileItems.forEach(function (item) {
+        var div = document.createElement("div");
+        div.className = "ignite-profile-menu-option mobile-only";
+        div.setAttribute("role", "link");
+        div.setAttribute("tabindex", "0");
+        div.innerHTML = '<i class="fal ' + item.icon + '"></i><div>' + item.label + "</div>";
+        if (item.route) {
+          div.onclick = function () {
+            return window.localNavigate(item.route);
+          };
+        } else {
+          div.onclick = function () {
+            window.open(item.url, "_blank");
+          };
+        }
+        if (accountItem) {
+          popup.insertBefore(div, accountItem);
+        } else {
+          popup.appendChild(div);
+        }
+      });
+    }
+
+    // Handle logout click
+    var logoutItem = popup.querySelector("#logout-profile-item");
+    if (logoutItem && logoutItem.dataset.localLogoutReady !== "true") {
+      logoutItem.dataset.localLogoutReady = "true";
+      logoutItem.onclick = function (event) {
+        event.preventDefault();
+        fetch("/api/auth/logout", {
+          method: "POST",
+          headers: authHeaders(),
+        }).finally(function () {
+          clearStoredAuthToken();
+          window.location.href = loginRedirectUrl;
+        });
+      };
     }
 
     trigger.dataset.localToggleReady = "true";
@@ -283,6 +332,25 @@
     try {
       window.localStorage.removeItem(authStorageKey);
     } catch (error) {}
+  }
+
+  function storeAuthToken(token) {
+    try {
+      window.localStorage.setItem(authStorageKey, token);
+    } catch (error) {}
+  }
+
+  function takeTokenFromUrl() {
+    var url = new URL(window.location.href);
+    var token = url.searchParams.get("token");
+
+    if (!token) {
+      return;
+    }
+
+    storeAuthToken(token);
+    url.searchParams.delete("token");
+    window.history.replaceState({ localRoute: getRoute(url) }, "", url.pathname + url.search + url.hash);
   }
 
   function authHeaders(extraHeaders) {
@@ -1201,7 +1269,12 @@
 
   function showPreloader() {
     preloaderVisibleFrom = Date.now();
-    ensurePreloader().classList.add("local-route-loader--visible");
+    var preloader = ensurePreloader();
+    preloader.classList.add("local-route-loader--visible");
+    document.body.classList.add("is-loading");
+    document.querySelectorAll("app-root, main, .admin-shell").forEach(function(el) {
+      el.style.visibility = "hidden";
+    });
   }
 
   function hidePreloader() {
@@ -1210,6 +1283,10 @@
 
     window.setTimeout(function () {
       ensurePreloader().classList.remove("local-route-loader--visible");
+      document.body.classList.remove("is-loading");
+      document.querySelectorAll("app-root, main, .admin-shell").forEach(function(el) {
+        el.style.visibility = "visible";
+      });
     }, delay);
   }
 
@@ -2509,6 +2586,12 @@
   }
 
   async function init() {
+    takeTokenFromUrl();
+    var route = getRoute(new URL(window.location.href));
+    if (isProtectedRoute(route) && !getStoredAuthToken()) {
+      window.location.href = loginRedirectUrl + "?returnUrl=" + encodeURIComponent(window.location.href);
+      return;
+    }
     ensurePreloader();
     document.querySelectorAll("ignite-profile-menu").forEach(setupProfileMenu);
     setupActivityTabs();

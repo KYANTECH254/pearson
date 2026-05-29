@@ -937,3 +937,46 @@ empty-cart .empty-cart-container button {
     transform: rotate(360deg);
   }
 }
+
+@media screen and (max-width: 1024px) {
+  .menu-buttons-container {
+    display: none !important;
+  }
+  .ignite-main-content-container.menu-exists {
+    margin-top: 0 !important;
+  }
+  .mobile-only {
+    display: flex !important;
+  }
+}
+
+@media screen and (min-width: 1025px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .toolbar-wrapper .toolbar-items {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding: 0 16px !important;
+    margin-top: 0 !important;
+    height: 100% !important;
+  }
+  #pearsonLogo {
+    position: static !important;
+    width: 120px !important;
+  }
+  .user-profile-menu-container {
+    position: static !important;
+  }
+  .ignite-profile-menu-popup {
+    width: 280px !important;
+    top: 50px !important;
+    right: 0 !important;
+  }
+}
+

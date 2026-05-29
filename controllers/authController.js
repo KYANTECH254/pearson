@@ -201,7 +201,7 @@ async function setSession(user) {
 async function currentUser(req) {
   const authHeader = String(req.headers.authorization || "");
   const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
-  const token = bearerToken || parseCookies(req)[sessionCookie];
+  const token = bearerToken;
 
   return userFromSessionToken(token);
 }
@@ -318,15 +318,13 @@ async function me(req, res) {
 async function logout(req, res) {
   const authHeader = String(req.headers.authorization || "");
   const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
-  const token = bearerToken || parseCookies(req)[sessionCookie];
+  const token = bearerToken;
 
   if (token) {
     await revokeSession(token);
   }
 
-  sendJson(res, 200, { ok: true }, {
-    "Set-Cookie": clearSessionCookieHeaders(),
-  });
+  sendJson(res, 200, { ok: true });
 }
 
 async function revokeSession(token) {

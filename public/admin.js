@@ -70,7 +70,7 @@
   }
 
   function loginUrl(returnPath) {
-    var url = new URL("https://id.mypte.pearsonpte.com/Account/Login");
+    var url = new URL(window.location.origin + "/Account/Login");
     url.searchParams.set("returnUrl", window.location.origin + (returnPath || "/admin"));
     return url.href;
   }

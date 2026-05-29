@@ -282,24 +282,9 @@ function shouldProtectPage(pathname) {
 }
 
 async function authorizePageAccess(req, res, pathname) {
-  if (!shouldProtectPage(pathname)) {
-    return false;
-  }
-
-  const user = await currentUser(req);
-
-  if (!user) {
-    res.writeHead(302, { Location: getLoginRedirectUrl(req) });
-    res.end();
-    return true;
-  }
-
-  if (pathname === "/admin" && user.role !== "ADMIN") {
-    res.writeHead(302, { Location: getLoginRedirectUrl(req) });
-    res.end();
-    return true;
-  }
-
+  // Page protection is now handled client-side because we're using
+  // localStorage for tokens and browsers don't send Authorization
+  // headers for document requests.
   return false;
 }
 
@@ -350,10 +335,15 @@ async function handleLocalSessionHandoff(req, res, url) {
     return true;
   }
 
+  // Redirect to the return URL with the token in the query string.
+  // The client-side scripts (local-header.js, admin.js) will pick it up
+  // and store it in localStorage.
+  const targetUrl = new URL(returnUrl);
+  targetUrl.searchParams.set("token", token);
+
   res.writeHead(302, {
     "Cache-Control": "no-store",
-    "Location": returnUrl,
-    "Set-Cookie": [...clearSessionCookieHeaders(), hostSessionCookieHeader(token), sessionCookieHeader(token)],
+    "Location": targetUrl.href,
   });
   res.end();
   return true;
