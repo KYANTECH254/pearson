@@ -135,6 +135,12 @@
   min-height: calc(100vh - 150px);
 }
 
+@media screen and (max-width: 1440px) {
+  .shoppingcart-wrapper-container .shoppingcart-wrapper {
+    top: 64px;
+  }
+}
+
 .local-cart-overall {
   box-sizing: border-box;
   color: #333;
