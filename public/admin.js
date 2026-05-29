@@ -10,6 +10,8 @@
   var saveTestButton = document.getElementById("saveTestButton");
   var avatarUpload = document.getElementById("avatarUpload");
   var avatarPreview = document.getElementById("avatarPreview");
+  var userCount = document.getElementById("userCount");
+  var testCount = document.getElementById("testCount");
   var userItems = [];
   var testItems = [];
 
@@ -56,10 +58,26 @@
     window.history.replaceState({}, "", url.pathname + url.search + url.hash);
   }
 
-  function loginUrl() {
+  function loginUrl(returnPath) {
     var url = new URL("https://id.mypte.pearsonpte.com/Account/Login");
-    url.searchParams.set("returnUrl", window.location.origin + "/admin");
+    url.searchParams.set("returnUrl", window.location.origin + (returnPath || "/admin"));
     return url.href;
+  }
+
+  function clearBrowserSession() {
+    clearStoredAuthToken();
+
+    try {
+      window.sessionStorage.clear();
+    } catch (error) {}
+
+    [
+      "pearson_session=; Max-Age=0; path=/",
+      "pearson_session=; Max-Age=0; path=/; domain=" + window.location.hostname,
+      "pearson_session=; Max-Age=0; path=/; domain=.mypte.pearsonpte.com",
+    ].forEach(function (cookie) {
+      document.cookie = cookie;
+    });
   }
 
   async function request(path, options) {
@@ -210,15 +228,20 @@
 
   function renderUsers(items) {
     userItems = items;
+    if (userCount) {
+      userCount.textContent = String(items.length);
+    }
+
     users.innerHTML = items.map(function (user) {
       return [
-        "<tr>",
-        "<td>" + escapeHtml(user.firstName + " " + user.lastName) + "</td>",
-        "<td>" + escapeHtml(user.username) + "</td>",
-        "<td>" + escapeHtml(user.email) + "</td>",
-        "<td>" + escapeHtml(user.role) + "</td>",
-        "<td><a href=\"#\" data-user-id=\"" + user.id + "\">Edit</a></td>",
-        "</tr>",
+        "<article class=\"record-card\">",
+        "<div>",
+        "<div class=\"record-card__title\">" + escapeHtml(user.firstName + " " + user.lastName) + "</div>",
+        "<div class=\"record-card__meta\">" + escapeHtml(user.email) + "</div>",
+        "<div class=\"record-card__meta\">" + escapeHtml(user.username) + " · " + escapeHtml(user.role) + "</div>",
+        "</div>",
+        "<div class=\"record-card__actions\"><a href=\"#\" data-user-id=\"" + user.id + "\">Edit</a></div>",
+        "</article>",
       ].join("");
     }).join("");
 
@@ -229,18 +252,22 @@
 
   function renderTests(items) {
     testItems = items;
+    if (testCount) {
+      testCount.textContent = String(items.length);
+    }
+
     tests.innerHTML = items.map(function (test) {
       var report = test.scoreReport || {};
 
       return [
-        "<tr>",
-        "<td>" + escapeHtml(test.user ? test.user.firstName + " " + test.user.lastName : "Unknown") + "</td>",
-        "<td>" + escapeHtml(test.title) + "</td>",
-        "<td>" + (test.score !== null && test.score !== undefined ? test.score : "-") + "</td>",
-        "<td>" + new Date(test.testDate).toLocaleDateString() + "</td>",
-        "<td>" + escapeHtml(test.status || report.registrationId || "-") + "</td>",
-        "<td><a href=\"#\" data-test-id=\"" + test.id + "\">Edit</a> | <a href=\"/my-activity/test-score/" + encodeURIComponent(test.id) + "\">View score</a></td>",
-        "</tr>",
+        "<article class=\"record-card\">",
+        "<div>",
+        "<div class=\"record-card__title\">" + escapeHtml(test.title) + " · " + (test.score !== null && test.score !== undefined ? test.score : "-") + "</div>",
+        "<div class=\"record-card__meta\">" + escapeHtml(test.user ? test.user.firstName + " " + test.user.lastName : "Unknown") + "</div>",
+        "<div class=\"record-card__meta\">" + new Date(test.testDate).toLocaleDateString() + " · " + escapeHtml(test.status || report.registrationId || "-") + "</div>",
+        "</div>",
+        "<div class=\"record-card__actions\"><a href=\"#\" data-test-id=\"" + test.id + "\">Edit</a><a href=\"/my-activity/test-score/" + encodeURIComponent(test.id) + "\">View score</a></div>",
+        "</article>",
       ].join("");
     }).join("");
   }
@@ -381,8 +408,8 @@
 
   document.getElementById("logoutButton").addEventListener("click", async function () {
     await request("/api/auth/logout", { method: "POST" }).catch(function () {});
-    clearStoredAuthToken();
-    window.location.href = loginUrl();
+    clearBrowserSession();
+    window.location.href = loginUrl("/");
   });
 
 })();
