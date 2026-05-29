@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma");
+const crypto = require("crypto");
 const { parseJsonBody, sendJson } = require("../lib/http");
 const { requireUser, requireAdmin } = require("./userController");
 const { publicUser } = require("./authController");
@@ -57,14 +58,7 @@ function randomReportCode() {
 }
 
 function randomHexId(length = 24) {
-  const alphabet = "0123456789abcdef";
-  let id = "";
-
-  while (id.length < length) {
-    id += alphabet[Math.floor(Math.random() * alphabet.length)];
-  }
-
-  return id;
+  return crypto.randomBytes(Math.ceil(length / 2)).toString("hex").slice(0, length);
 }
 
 function scoreReportData(body, test) {

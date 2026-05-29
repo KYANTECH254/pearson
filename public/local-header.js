@@ -1600,9 +1600,73 @@
     });
   }
 
+  function setDashboardRebookCard(test) {
+    var card = document.querySelector("test-taker-re-book-test #card_re_book_test");
+    var report = test && test.scoreReport ? test.scoreReport : {};
+    var examName = card ? card.querySelector(".exam-name") : null;
+    var center = card ? card.querySelector("#test_center strong") : null;
+    var centerLines = card ? card.querySelectorAll("#test_center .ng-star-inserted div") : [];
+    var cityLine = card ? Array.from(card.querySelectorAll("#test_center div")).find(function (node) {
+      return node.textContent.indexOf("AUS") !== -1 || node.textContent.indexOf(report.testCenterCountry || "") !== -1;
+    }) : null;
+    var buttonLabel = card ? card.querySelector("#button_re_book_test .mdc-button__label") : null;
+
+    if (!card || !test) {
+      return;
+    }
+
+    setText(examName, test.title || "PTE Academic");
+    setText(center, report.testCenterName || "");
+    setText(centerLines[0], " " + (report.testCenterAddress1 || ""));
+    setText(centerLines[1], " " + (report.testCenterAddress2 || ""));
+    setText(cityLine, " " + [report.testCenterCity, report.testCenterState, report.testCenterCountry, report.testCenterPostalCode].filter(Boolean).join(", ").replace(", " + report.testCenterCountry, ", " + report.testCenterCountry + " "));
+    setText(buttonLabel, " Re-book " + (test.title || "PTE Academic") + " ");
+  }
+
+  async function setupDashboardLatestTest() {
+    var route = getRoute(new URL(window.location.href));
+    var data;
+
+    if (route !== "/" && route !== "/dashboard" && route !== "/myPTE" && route !== "/mypte") {
+      return;
+    }
+
+    data = await apiJson("/api/user/tests/latest").catch(function () {
+      return { test: null };
+    });
+
+    if (data.test) {
+      setDashboardRebookCard(data.test);
+    }
+  }
+
   function setScoreValue(selector, value) {
     document.querySelectorAll(selector).forEach(function (node) {
       node.textContent = value || "";
+    });
+  }
+
+  function clearDynamicScoreReport(user) {
+    var fullName = user ? [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || "" : "";
+    var pteId = user && user.pteId ? user.pteId : "";
+
+    setScoreValue("#profile-user-name, .candidate-name1", fullName);
+    setScoreValue("#profile-display-id", pteId ? "PTE ID: " + pteId : "");
+    setScoreValue("#text_test_name", "Score report not found");
+    setScoreValue("#text_test_time", "This test score is not available for the signed-in user.");
+    setScoreValue(".src_code", "");
+    setScoreValue(".candidate-id", pteId ? "Test Taker ID: " + pteId : "");
+    setScoreValue(".appointment-id .desktopview-inline, .reg-id-value", "");
+    setScoreValue(".overall-value, .gse-badge__score", "");
+    setScoreValue(".test-center-location, .test-center-id, .test-center-name, .mobile-view-test-centre", "");
+    setScoreValue(".test-date, .valid-date", "");
+    setScoreValue(".country-citizenship, .country-residence, .gender", "");
+    ["Listening", "Reading", "Speaking", "Writing"].forEach(function (label) {
+      setScoreBars(label, "");
+      setSkillSpinner(label, "");
+    });
+    document.querySelectorAll(".vbar-online").forEach(function (bar) {
+      bar.style.left = "0%";
     });
   }
 
@@ -1695,9 +1759,8 @@
     });
     test = data.test;
 
-    if (!test) {
-      setScoreValue("#text_test_name", "Score report not found");
-      setScoreValue("#text_test_time", "This test score is not available for the signed-in user.");
+    if (!test || (auth.user && Number(test.userId) !== Number(auth.user.id))) {
+      clearDynamicScoreReport(auth.user || null);
       return;
     }
 
@@ -2603,6 +2666,7 @@
     setupDashboardLinks();
     setupLocalNavigation();
     await setupAuthChrome();
+    await setupDashboardLatestTest();
     await setupDynamicActivityTests();
     await setupDynamicScoreReport();
     setupScoreReportButtons();

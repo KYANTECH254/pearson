@@ -10,7 +10,7 @@
   function text(selector, value, root) {
     var nodes = Array.prototype.slice.call((root || document).querySelectorAll(selector));
     nodes.forEach(function (node) {
-      if (value !== undefined && value !== null && value !== "") {
+      if (value !== undefined && value !== null) {
         node.textContent = String(value);
       }
     });
@@ -88,26 +88,72 @@
     var token = getStoredAuthToken();
     var id = window.location.pathname.split("/").filter(Boolean).pop() || "";
     var headers = {};
+    var authResponse;
+    var authData;
+    var response;
+    var data;
+    var test;
 
     if (token) {
       headers.Authorization = "Bearer " + token;
     }
 
-    var response = await fetch("/api/user/tests/" + encodeURIComponent(id), {
+    authResponse = await fetch("/api/auth/me", {
+      credentials: "same-origin",
+      headers: headers,
+    });
+
+    if (!authResponse.ok) {
+      return null;
+    }
+
+    authData = await authResponse.json();
+    response = await fetch("/api/user/tests/" + encodeURIComponent(id), {
       credentials: "same-origin",
       headers: headers,
     });
 
     if (!response.ok) {
-      return null;
+      return { user: authData.user || null, test: null };
     }
 
-    var data = await response.json();
-    return data.test || null;
+    data = await response.json();
+    test = data.test || null;
+
+    if (test && authData.user && Number(test.userId) !== Number(authData.user.id)) {
+      test = null;
+    }
+
+    return { user: authData.user || null, test: test };
   }
 
-  function applyScore(test) {
+  function clearScore(user) {
+    var fullName = user ? [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || "" : "";
+    var pteId = user && user.pteId ? user.pteId : "";
+
+    text("#profile-user-name, .candidate-name1", fullName);
+    text("#profile-display-id", pteId ? "PTE ID: " + pteId : "");
+    text("#text_test_name", "Score report not found");
+    text("#text_test_time", "This test score is not available for the signed-in user.");
+    text(".src_code", "");
+    text(".candidate-id", pteId ? "Test Taker ID: " + pteId : "");
+    text(".appointment-id .desktopview-inline, .reg-id-value", "");
+    text(".gse-badge__score, .overall-value", "");
+    text(".test-center-location, .test-center-id, .test-center-name", "");
+    text(".test-date, .valid-date", "");
+    text(".country-citizenship, .country-residence, .gender", "");
+    ["Listening", "Reading", "Speaking", "Writing"].forEach(function (name) {
+      setSkillByName(name, "");
+      setWidth(".bar-" + name.toLowerCase(), 0);
+      setProgress(".circle-" + name.toLowerCase(), 0);
+    });
+  }
+
+  function applyScore(payload) {
+    var test = payload && payload.test;
+
     if (!test) {
+      clearScore(payload && payload.user);
       return;
     }
 
@@ -175,5 +221,7 @@
     });
   }
 
-  requestScore().then(applyScore).catch(function () {});
+  requestScore().then(applyScore).catch(function () {
+    clearScore(null);
+  });
 })();

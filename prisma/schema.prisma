@@ -76,7 +76,7 @@ model Product {
 }
 
 model Test {
-  id          String   @id @default(uuid())
+  id          String   @id
   user        User     @relation(fields: [userId], references: [id])
   userId      Int
   title       String
@@ -91,7 +91,7 @@ model Test {
 }
 
 model TestScoreReport {
-  id                   String   @id @default(uuid())
+  id                   String   @id
   test                 Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
   testId               String   @unique
   reportCode           String?
