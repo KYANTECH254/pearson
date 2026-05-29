@@ -15,8 +15,24 @@ function sessionCookieHeader(token) {
   return `${sessionCookie}=${encodeURIComponent(token)}; ${sessionCookieOptions}`;
 }
 
+function hostSessionCookieHeader(token) {
+  return `${sessionCookie}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${sessionMaxAgeSeconds}`;
+}
+
 function clearSessionCookieHeader() {
   return `${sessionCookie}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${sessionCookieDomain ? `; Domain=${sessionCookieDomain}` : ""}`;
+}
+
+function clearSessionCookieHeaders() {
+  const headers = [
+    `${sessionCookie}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
+  ];
+
+  if (sessionCookieDomain) {
+    headers.push(clearSessionCookieHeader());
+  }
+
+  return headers;
 }
 
 function base64UrlEncode(value) {
@@ -309,7 +325,7 @@ async function logout(req, res) {
   }
 
   sendJson(res, 200, { ok: true }, {
-    "Set-Cookie": clearSessionCookieHeader(),
+    "Set-Cookie": clearSessionCookieHeaders(),
   });
 }
 
@@ -329,6 +345,8 @@ module.exports = {
   me,
   publicUser,
   register,
+  clearSessionCookieHeaders,
+  hostSessionCookieHeader,
   sessionCookieHeader,
   userFromSessionToken,
 };

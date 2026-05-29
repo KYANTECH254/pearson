@@ -410,6 +410,34 @@ async function updateAdminTest(req, res, id) {
   sendJson(res, 200, { test: { ...test, user: publicUser(test.user) } });
 }
 
+async function deleteAdminTest(req, res, id) {
+  if (!(await requireAdmin(req, res))) {
+    return;
+  }
+
+  const testId = Number(id);
+
+  if (!Number.isInteger(testId) || testId <= 0) {
+    sendJson(res, 400, { error: "Invalid test ID." });
+    return;
+  }
+
+  try {
+    await prisma.test.delete({
+      where: { id: testId },
+    });
+
+    sendJson(res, 200, { ok: true });
+  } catch (error) {
+    if (error.code === "P2025") {
+      sendJson(res, 404, { error: "Test not found." });
+      return;
+    }
+
+    throw error;
+  }
+}
+
 async function getUserTest(req, res, id) {
   const user = await requireUser(req, res);
   if (!user) {
@@ -441,6 +469,7 @@ module.exports = {
   listAllTests,
   createAdminTest,
   updateAdminTest,
+  deleteAdminTest,
   getUserTest,
   ensureScoreReportStore,
 };

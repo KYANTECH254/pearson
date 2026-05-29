@@ -22,9 +22,9 @@ function loadEnv() {
 
 loadEnv();
 
-const { login, logout, me, register, ensureDefaultAdmin, ensureSessionStore, currentUser, sessionCookieHeader, userFromSessionToken } = require("./controllers/authController");
-const { createUser, listUsers, updateAdminUser, updateProfile, updatePassword, updatePrivacy } = require("./controllers/userController");
-const { listUserTests, createUserTest, listAllTests, createAdminTest, updateAdminTest, getUserTest, ensureScoreReportStore } = require("./controllers/testController");
+const { login, logout, me, register, ensureDefaultAdmin, ensureSessionStore, currentUser, clearSessionCookieHeaders, hostSessionCookieHeader, sessionCookieHeader, userFromSessionToken } = require("./controllers/authController");
+const { createUser, deleteAdminUser, listUsers, updateAdminUser, updateProfile, updatePassword, updatePrivacy } = require("./controllers/userController");
+const { listUserTests, createUserTest, listAllTests, createAdminTest, updateAdminTest, deleteAdminTest, getUserTest, ensureScoreReportStore } = require("./controllers/testController");
 const { getProducts, createProduct, updateProduct, deleteProduct } = require("./controllers/productController");
 const { databaseTarget, isDatabaseConnectionError } = require("./lib/databaseErrors");
 const { sendJson } = require("./lib/http");
@@ -159,6 +159,12 @@ async function handleApiRequest(req, res, pathname) {
       return true;
     }
 
+    if (pathname.startsWith("/api/admin/users/") && req.method === "DELETE") {
+      const id = pathname.split("/").pop();
+      await deleteAdminUser(req, res, id);
+      return true;
+    }
+
     if (pathname === "/api/admin/tests" && req.method === "GET") {
       await listAllTests(req, res);
       return true;
@@ -172,6 +178,12 @@ async function handleApiRequest(req, res, pathname) {
     if (pathname.startsWith("/api/admin/tests/") && req.method === "PUT") {
       const id = pathname.split("/").pop();
       await updateAdminTest(req, res, id);
+      return true;
+    }
+
+    if (pathname.startsWith("/api/admin/tests/") && req.method === "DELETE") {
+      const id = pathname.split("/").pop();
+      await deleteAdminTest(req, res, id);
       return true;
     }
 
@@ -291,8 +303,16 @@ async function authorizePageAccess(req, res, pathname) {
   return false;
 }
 
-function getSafeDashboardReturnUrl(value) {
+function requestOrigin(req) {
+  const host = req.headers.host || new URL(dashboardOrigin).host;
+  const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") || host.startsWith("127.0.0.1") ? "http" : "https");
+
+  return `${protocol}://${host}`;
+}
+
+function getSafeDashboardReturnUrl(value, req) {
   const fallback = new URL("/", dashboardOrigin);
+  const allowedOrigins = new Set([dashboardOrigin, requestOrigin(req)]);
 
   if (!value) {
     return fallback.href;
@@ -301,7 +321,7 @@ function getSafeDashboardReturnUrl(value) {
   try {
     const url = new URL(value, dashboardOrigin);
 
-    return url.origin === dashboardOrigin ? url.href : fallback.href;
+    return allowedOrigins.has(url.origin) ? url.href : fallback.href;
   } catch (error) {
     return fallback.href;
   }
@@ -318,7 +338,7 @@ function getLoginRedirectUrl(req) {
 
 async function handleLocalSessionHandoff(req, res, url) {
   const token = url.searchParams.get("token") || "";
-  const returnUrl = getSafeDashboardReturnUrl(url.searchParams.get("returnUrl"));
+  const returnUrl = getSafeDashboardReturnUrl(url.searchParams.get("returnUrl"), req);
   const user = await userFromSessionToken(token);
 
   if (!user) {
@@ -333,7 +353,7 @@ async function handleLocalSessionHandoff(req, res, url) {
   res.writeHead(302, {
     "Cache-Control": "no-store",
     "Location": returnUrl,
-    "Set-Cookie": sessionCookieHeader(token),
+    "Set-Cookie": [...clearSessionCookieHeaders(), hostSessionCookieHeader(token), sessionCookieHeader(token)],
   });
   res.end();
   return true;

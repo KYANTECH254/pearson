@@ -130,6 +130,41 @@ async function updateAdminUser(req, res, id) {
   }
 }
 
+async function deleteAdminUser(req, res, id) {
+  const admin = await requireAdmin(req, res);
+
+  if (!admin) {
+    return;
+  }
+
+  const userId = Number(id);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    sendJson(res, 400, { error: "Invalid user ID." });
+    return;
+  }
+
+  if (userId === admin.id) {
+    sendJson(res, 400, { error: "You cannot delete your own admin account." });
+    return;
+  }
+
+  try {
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    sendJson(res, 200, { ok: true });
+  } catch (error) {
+    if (error.code === "P2025") {
+      sendJson(res, 404, { error: "User not found." });
+      return;
+    }
+
+    throw error;
+  }
+}
+
 async function updateProfile(req, res) {
   const user = await requireUser(req, res);
   if (!user) return;
@@ -210,6 +245,7 @@ async function updatePrivacy(req, res) {
 
 module.exports = {
   createUser,
+  deleteAdminUser,
   listUsers,
   updateAdminUser,
   updateProfile,
