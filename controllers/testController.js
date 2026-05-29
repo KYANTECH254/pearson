@@ -67,17 +67,11 @@ function scoreReportData(body, test) {
   const testTime = String(body.testTime || (metadata && metadata.testTime) || "").trim();
   const testCenterId = String(body.testCenterId || (metadata && metadata.testCenterId) || "").trim();
 
-  if (testTime) {
-    metadata.testTime = testTime;
-  }
-
-  if (testCenterId) {
-    metadata.testCenterId = testCenterId;
-  }
-
   return {
     reportCode: reportCode || randomReportCode(),
     registrationId: registrationId || randomDigits(9),
+    testTime: testTime || null,
+    testCenterId: testCenterId || null,
     testCenterName: String(body.testCenterName || (metadata && metadata.testCenterName) || "Navitas English Test Centre- Brisbane").trim(),
     testCenterAddress1: String(body.testCenterAddress1 || (metadata && metadata.testCenterAddress1) || "Suite 3, Level 8 East Tower").trim(),
     testCenterAddress2: String(body.testCenterAddress2 || (metadata && metadata.testCenterAddress2) || "410 Ann Street").trim(),
@@ -102,20 +96,11 @@ function scoreReportUpdateData(body, test) {
     ...(parseMetadata(body.metadata) || {}),
     ...(parseMetadata(body.reportMetadata) || {}),
   };
-  const metadataFields = ["testTime", "testCenterId"];
-
-  metadataFields.forEach((field) => {
-    if (body[field] !== undefined) {
-      const value = String(body[field] || "").trim();
-      if (value) {
-        metadata[field] = value;
-      }
-    }
-  });
-
   [
     "reportCode",
     "registrationId",
+    "testTime",
+    "testCenterId",
     "testCenterName",
     "testCenterAddress1",
     "testCenterAddress2",
@@ -174,6 +159,8 @@ async function ensureScoreReportStore() {
       "testId" INTEGER NOT NULL UNIQUE REFERENCES "Test"("id") ON DELETE CASCADE,
       "reportCode" TEXT,
       "registrationId" TEXT,
+      "testTime" TEXT,
+      "testCenterId" TEXT,
       "testCenterName" TEXT,
       "testCenterAddress1" TEXT,
       "testCenterAddress2" TEXT,
@@ -206,6 +193,8 @@ async function ensureScoreReportStore() {
     ALTER TABLE "TestScoreReport"
     ADD COLUMN IF NOT EXISTS "reportCode" TEXT,
     ADD COLUMN IF NOT EXISTS "registrationId" TEXT,
+    ADD COLUMN IF NOT EXISTS "testTime" TEXT,
+    ADD COLUMN IF NOT EXISTS "testCenterId" TEXT,
     ADD COLUMN IF NOT EXISTS "testCenterName" TEXT,
     ADD COLUMN IF NOT EXISTS "testCenterAddress1" TEXT,
     ADD COLUMN IF NOT EXISTS "testCenterAddress2" TEXT,
@@ -427,8 +416,14 @@ async function getUserTest(req, res, id) {
     return;
   }
 
+  const numericId = Number(id);
+  const where = Number.isInteger(numericId) && numericId > 0
+    ? (user.role === "ADMIN" ? { id: numericId } : { id: numericId, userId: user.id })
+    : (user.role === "ADMIN" ? {} : { userId: user.id });
+
   const test = await prisma.test.findFirst({
-    where: user.role === "ADMIN" ? { id: Number(id) } : { id: Number(id), userId: user.id },
+    where,
+    orderBy: Number.isInteger(numericId) && numericId > 0 ? undefined : { createdAt: "desc" },
     include: { user: true, scoreReport: true },
   });
 

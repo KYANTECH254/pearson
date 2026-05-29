@@ -204,6 +204,11 @@
           <label for="gender">Gender</label>
           <input id="gender" name="gender">
 
+          <label for="avatarUpload">User image</label>
+          <input id="avatarUpload" accept="image/*" type="file">
+          <input id="avatarUrl" name="avatarUrl" type="hidden">
+          <img id="avatarPreview" alt="" style="display:none;width:96px;height:96px;object-fit:cover;border-radius:50%;margin:0 0 14px;">
+
           <button id="saveUserButton" type="submit">Create user</button>
           <button class="secondary" id="resetUserForm" type="button">New user</button>
           <div class="message" id="message"></div>

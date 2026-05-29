@@ -96,6 +96,8 @@ model TestScoreReport {
   testId               Int      @unique
   reportCode           String?
   registrationId       String?
+  testTime             String?
+  testCenterId         String?
   testCenterName       String?
   testCenterAddress1   String?
   testCenterAddress2   String?

@@ -8,7 +8,7 @@
     "normalize:routes": "node scripts/normalize-page-routes.js",
     "prepare:public": "node scripts/rewrite-public-assets.js",
     "start": "nodemon server.js",
-    "test": "node --check server.js && node --check controllers/authController.js && node --check controllers/productController.js && node --check controllers/testController.js && node --check controllers/userController.js && node --check public/admin.js && node --check public/local-header.js && node --check scripts/download-missing-src-assets.js && node --check scripts/normalize-page-routes.js && node --check scripts/rewrite-public-assets.js"
+    "test": "node --check server.js && node --check controllers/authController.js && node --check controllers/productController.js && node --check controllers/testController.js && node --check controllers/userController.js && node --check public/admin.js && node --check public/local-header.js && node --check public/score-report.js && node --check scripts/download-missing-src-assets.js && node --check scripts/normalize-page-routes.js && node --check scripts/rewrite-public-assets.js"
   },
   "keywords": [],
   "author": "",

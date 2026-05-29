@@ -317,16 +317,22 @@
                         } catch (error) {}
                     }
 
-                    if (data.token) {
-                        // Redirect to the dashboard and include the token in the URL so
-                        // the dashboard origin can persist it to its own localStorage.
-                        var redirectUrl = new URL(dashboardOrigin + "/");
-                        redirectUrl.searchParams.set("token", data.token);
-                        if (targetUrl) redirectUrl.searchParams.set("returnUrl", targetUrl);
-                        window.location.href = redirectUrl.href;
-                    } else {
-                        window.location.href = targetUrl;
+                    if (data.token && data.user && data.user.role === "ADMIN") {
+                        var adminRedirectUrl = new URL(targetUrl);
+                        adminRedirectUrl.searchParams.set("token", data.token);
+                        window.location.href = adminRedirectUrl.href;
+                        return;
                     }
+
+                    if (data.token) {
+                        var redirectUrl = new URL(dashboardOrigin + "/auth/local-session");
+                        redirectUrl.searchParams.set("token", data.token);
+                        redirectUrl.searchParams.set("returnUrl", targetUrl);
+                        window.location.href = redirectUrl.href;
+                        return;
+                    }
+
+                    window.location.href = targetUrl;
                 });
             }).catch(function (error) {
                 message.text(error.message).show();

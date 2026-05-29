@@ -8,6 +8,8 @@
   var testUserId = document.getElementById("testUserId");
   var saveUserButton = document.getElementById("saveUserButton");
   var saveTestButton = document.getElementById("saveTestButton");
+  var avatarUpload = document.getElementById("avatarUpload");
+  var avatarPreview = document.getElementById("avatarPreview");
   var userItems = [];
   var testItems = [];
 
@@ -33,6 +35,31 @@
     try {
       window.localStorage.removeItem("pearson_session_token");
     } catch (error) {}
+  }
+
+  function storeAuthToken(token) {
+    try {
+      window.localStorage.setItem("pearson_session_token", token);
+    } catch (error) {}
+  }
+
+  function takeTokenFromUrl() {
+    var url = new URL(window.location.href);
+    var token = url.searchParams.get("token");
+
+    if (!token) {
+      return;
+    }
+
+    storeAuthToken(token);
+    url.searchParams.delete("token");
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+  }
+
+  function loginUrl() {
+    var url = new URL("https://id.mypte.pearsonpte.com/Account/Login");
+    url.searchParams.set("returnUrl", window.location.origin + "/admin");
+    return url.href;
   }
 
   async function request(path, options) {
@@ -102,9 +129,20 @@
     }
   }
 
+  function setAvatarPreview(value) {
+    if (!avatarPreview) {
+      return;
+    }
+
+    avatarPreview.src = value || "";
+    avatarPreview.style.display = value ? "block" : "none";
+  }
+
   function resetUserForm() {
     form.reset();
     setFormValue(form, "id", "");
+    setFormValue(form, "avatarUrl", "");
+    setAvatarPreview("");
     form.elements.password.required = true;
     saveUserButton.textContent = "Create user";
   }
@@ -131,6 +169,8 @@
     setFormValue(form, "countryOfCitizenship", user.countryOfCitizenship);
     setFormValue(form, "countryOfResidence", user.countryOfResidence);
     setFormValue(form, "gender", user.gender);
+    setFormValue(form, "avatarUrl", user.avatarUrl);
+    setAvatarPreview(user.avatarUrl);
     form.elements.password.required = false;
     saveUserButton.textContent = "Update user";
     form.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -150,11 +190,11 @@
     setFormValue(testForm, "speakingScore", report.speakingScore);
     setFormValue(testForm, "writingScore", report.writingScore);
     setFormValue(testForm, "testDate", inputDate(test.testDate));
-    setFormValue(testForm, "testTime", metadata.testTime);
+    setFormValue(testForm, "testTime", report.testTime || metadata.testTime);
     setFormValue(testForm, "registrationId", report.registrationId);
     setFormValue(testForm, "reportCode", report.reportCode);
     setFormValue(testForm, "testCenterName", report.testCenterName);
-    setFormValue(testForm, "testCenterId", metadata.testCenterId);
+    setFormValue(testForm, "testCenterId", report.testCenterId || metadata.testCenterId);
     setFormValue(testForm, "testCenterAddress1", report.testCenterAddress1);
     setFormValue(testForm, "testCenterAddress2", report.testCenterAddress2);
     setFormValue(testForm, "testCenterCity", report.testCenterCity);
@@ -215,16 +255,45 @@
     renderTests(data.tests || []);
   }
 
+  takeTokenFromUrl();
+
   request("/api/auth/me").then(function (data) {
     if (!data.user || data.user.role !== "ADMIN") {
-      window.location.href = "https://id.mypte.pearsonpte.com/Account/Login";
+      window.location.href = loginUrl();
       return;
     }
 
     return Promise.all([loadUsers(), loadTests()]);
   }).catch(function () {
     clearStoredAuthToken();
-    window.location.href = "https://id.mypte.pearsonpte.com/Account/Login";
+    window.location.href = loginUrl();
+  });
+
+  avatarUpload.addEventListener("change", function () {
+    var file = avatarUpload.files && avatarUpload.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type || !file.type.startsWith("image/")) {
+      setMessage("Please choose an image file.", true);
+      avatarUpload.value = "";
+      return;
+    }
+
+    if (file.size > 3 * 1024 * 1024) {
+      setMessage("Image must be 3 MB or smaller.", true);
+      avatarUpload.value = "";
+      return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function () {
+      setFormValue(form, "avatarUrl", reader.result);
+      setAvatarPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
   });
 
   form.addEventListener("submit", async function (event) {
@@ -313,6 +382,7 @@
   document.getElementById("logoutButton").addEventListener("click", async function () {
     await request("/api/auth/logout", { method: "POST" }).catch(function () {});
     clearStoredAuthToken();
-    window.location.href = "https://id.mypte.pearsonpte.com/Account/Login";
+    window.location.href = loginUrl();
   });
+
 })();

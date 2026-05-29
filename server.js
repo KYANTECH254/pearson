@@ -251,7 +251,6 @@ function shouldProtectPage(pathname) {
   const protectedPages = new Set([
     "/",
     "/activity",
-    "/admin",
     "/account",
     cartRoute,
     "/dashboard",
