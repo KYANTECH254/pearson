@@ -422,22 +422,24 @@ async function getUserTest(req, res, id) {
   const isLatest = !id || id === "latest";
 
   // Scoping logic:
-  // 1. If user is ADMIN, they can see any test by ID, or the first test overall if no ID.
-  // 2. If user is NOT ADMIN, they can only see their own tests.
+  // 1. If user is ADMIN and an ID is provided, fetch that specific test.
+  // 2. If user is ADMIN and no ID (latest), fetch THEIR latest test.
+  // 3. If user is NOT ADMIN, ALWAYS filter by THEIR userId.
 
   const where = {};
-  if (!isLatest) {
-    where.id = id;
-  }
-  if (user.role !== "ADMIN") {
+
+  if (user.role === "ADMIN") {
+    if (!isLatest) {
+      where.id = id;
+    } else {
+      where.userId = user.id; // Admin's own latest
+    }
+  } else {
+    // Regular user: must be their own
     where.userId = user.id;
-  } else if (isLatest && !where.userId) {
-    // Admin fetching "latest" without specific userId could be ambiguous,
-    // but usually they'd fetch a specific test.
-    // If they want their OWN latest, we should probably allow that.
-    // For now, let's keep it simple: if admin and no ID, return their own latest or just any latest?
-    // User specifically asked about "kyan" (who is likely a USER).
-    where.userId = user.id;
+    if (!isLatest) {
+      where.id = id;
+    }
   }
 
   const test = await prisma.test.findFirst({
