@@ -2045,6 +2045,10 @@
     activateLearnTab(view);
     setupLearnStoreExamTabs();
 
+    if (view === "store") {
+      activateLearnStoreExamTab(params.get("journeyId") === "pte-core" ? "pte-core" : "pte-academic");
+    }
+
     if (view !== "free-resources") {
       return;
     }
@@ -2093,6 +2097,57 @@
       button.addEventListener("click", function (event) {
         event.preventDefault();
         navigateTo(getScoreReportPath(button));
+      });
+    });
+  }
+
+  function setDashboardLink(selector, href, external) {
+    document.querySelectorAll(selector).forEach(function (link) {
+      link.setAttribute("href", href);
+
+      if (external) {
+        link.setAttribute("target", "_blank");
+        link.setAttribute("rel", "noopener noreferrer");
+      } else {
+        link.removeAttribute("target");
+        link.setAttribute("rel", "noopener");
+      }
+    });
+  }
+
+  function setupDashboardLinks() {
+    setDashboardLink("#link_banner", "/learn?view=free-resources&journeyId=pte-academic", false);
+    setDashboardLink("#btn_prep_academic_store", "/learn?view=store&journeyId=pte-academic", false);
+    setDashboardLink("#btn_prep_core_store", "/learn?view=store&journeyId=pte-core", false);
+    setDashboardLink("#btn_my_purchases", "/learn?view=my-purchases", false);
+    setDashboardLink("#btn_free_pte_academic", "/learn?view=free-resources&journeyId=pte-academic", false);
+    setDashboardLink("#btn_free_pte_core", "/learn?view=free-resources&journeyId=pte-core", false);
+    setDashboardLink("#btn_free_pte_home", "/learn?view=free-resources&journeyId=pte-home", false);
+    setDashboardLink("#btn_learn_academic", "https://www.pearsonpte.com/pte-academic/test-format", true);
+    setDashboardLink("#btn_learn_core", "https://www.pearsonpte.com/pte-core/test-format", true);
+    setDashboardLink("#btn_learn_home", "https://www.pearsonpte.com/selt-tests", true);
+
+    document.querySelectorAll("#button_re_book_test").forEach(function (button) {
+      if (button.dataset.localRebookNavigationReady === "true") {
+        return;
+      }
+
+      button.dataset.localRebookNavigationReady = "true";
+      button.addEventListener("click", function (event) {
+        event.preventDefault();
+        navigateTo("/users/profile/quick-registration");
+      });
+    });
+
+    document.querySelectorAll("#linkbtn_feedback").forEach(function (button) {
+      if (button.dataset.localFeedbackNavigationReady === "true") {
+        return;
+      }
+
+      button.dataset.localFeedbackNavigationReady = "true";
+      button.addEventListener("click", function (event) {
+        event.preventDefault();
+        window.open("https://www.pearsonpte.com/contact-us/", "_blank", "noopener");
       });
     });
   }
@@ -2223,7 +2278,7 @@
 
       var response = await fetch(url.pathname + url.search, {
         credentials: "same-origin",
-        headers: { "X-Local-Navigation": "1" },
+        headers: authHeaders({ "X-Local-Navigation": "1" }),
       });
 
       if (!response.ok) {
@@ -2458,11 +2513,13 @@
     document.querySelectorAll("ignite-profile-menu").forEach(setupProfileMenu);
     setupActivityTabs();
     setupScoreReportButtons();
+    setupDashboardLinks();
     setupLocalNavigation();
     await setupAuthChrome();
     await setupDynamicActivityTests();
     await setupDynamicScoreReport();
     setupScoreReportButtons();
+    setupDashboardLinks();
     setupLocalNavigation();
     setupPasswordFields();
     setupAccountProfilePanels();
