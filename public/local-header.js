@@ -1,5 +1,5 @@
 (function () {
-  var defaultScoreReportPath = "/my-activity/test-score/latest";
+  var defaultScoreReportPath = "/my-activity";
   var loginRoute = "/Account/Login";
   var loginRedirectUrl = window.location.origin + loginRoute;
   var cartRoute = "/orders/shoppingcart";
@@ -1623,6 +1623,37 @@
     setText(buttonLabel, " Re-book " + (test.title || "PTE Academic") + " ");
   }
 
+  function setDashboardScoreCard(test) {
+    var card = document.querySelector("test-taker-score-available #card_score_available");
+    var button = card ? card.querySelector("#button_view_score") : document.querySelector("#button_view_score");
+    var wrapper = card ? card.closest("mat-card") || card.parentElement : null;
+
+    if (!test) {
+      if (wrapper) {
+        wrapper.style.display = "none";
+      }
+      return;
+    }
+
+    if (wrapper) {
+      wrapper.style.display = "";
+    }
+
+    if (button) {
+      button.dataset.scoreId = test.id;
+      button.dataset.scoreRoute = "/my-activity/test-score/" + encodeURIComponent(test.id);
+    }
+  }
+
+  function clearDashboardRebookCard() {
+    var card = document.querySelector("test-taker-re-book-test #card_re_book_test");
+    var wrapper = card ? card.closest("mat-card") || card.parentElement : null;
+
+    if (wrapper) {
+      wrapper.style.display = "none";
+    }
+  }
+
   async function setupDashboardLatestTest() {
     var route = getRoute(new URL(window.location.href));
     var data;
@@ -1637,6 +1668,10 @@
 
     if (data.test) {
       setDashboardRebookCard(data.test);
+      setDashboardScoreCard(data.test);
+    } else {
+      clearDashboardRebookCard();
+      setDashboardScoreCard(null);
     }
   }
 
@@ -1762,6 +1797,10 @@
     if (!test || (auth.user && Number(test.userId) !== Number(auth.user.id))) {
       clearDynamicScoreReport(auth.user || null);
       return;
+    }
+
+    if (id === "latest") {
+      window.history.replaceState({ localRoute: "/my-activity/test-score/" + test.id }, "", "/my-activity/test-score/" + encodeURIComponent(test.id));
     }
 
     report = test.scoreReport || {};

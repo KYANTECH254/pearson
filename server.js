@@ -22,7 +22,8 @@ function loadEnv() {
 
 loadEnv();
 
-const { login, logout, me, register, ensureDefaultAdmin, ensureSessionStore, currentUser, clearSessionCookieHeaders, hostSessionCookieHeader, sessionCookieHeader, userFromSessionToken } = require("./controllers/authController");
+const prisma = require("./lib/prisma");
+const { login, logout, me, register, ensureDefaultAdmin, ensureSessionStore, currentUser, publicUser, clearSessionCookieHeaders, hostSessionCookieHeader, sessionCookieHeader, userFromSessionToken } = require("./controllers/authController");
 const { createUser, deleteAdminUser, listUsers, updateAdminUser, updateProfile, updatePassword, updatePrivacy } = require("./controllers/userController");
 const { listUserTests, createUserTest, listAllTests, createAdminTest, updateAdminTest, deleteAdminTest, getUserTest, ensureScoreReportStore } = require("./controllers/testController");
 const { getProducts, createProduct, updateProduct, deleteProduct } = require("./controllers/productController");
@@ -240,6 +241,10 @@ async function handleApiRequest(req, res, pathname) {
       return true;
     }
 
+    if (await handleLegacyPearsonApi(req, res, pathname)) {
+      return true;
+    }
+
     if (pathname.startsWith("/api/")) {
       sendJson(res, 404, { error: "API route not found." });
       return true;
@@ -257,6 +262,114 @@ async function handleApiRequest(req, res, pathname) {
     sendJson(res, 500, { error: "Server error." });
     return true;
   }
+}
+
+async function optionalRequestUser(req) {
+  try {
+    return await currentUser(req);
+  } catch (error) {
+    return null;
+  }
+}
+
+function legacyUser(user) {
+  if (!user) {
+    return null;
+  }
+
+  return {
+    ...publicUser(user),
+    userId: user.id,
+    firstName: user.firstName || "",
+    lastName: user.lastName || "",
+    emailAddress: user.email || "",
+    pteId: user.pteId || "",
+  };
+}
+
+function legacyAppointment(test) {
+  const report = test.scoreReport || {};
+
+  return {
+    id: test.id,
+    appointmentId: test.id,
+    userId: test.userId,
+    testName: test.title || "PTE Academic",
+    startDate: test.testDate,
+    status: test.status || "Completed",
+    registrationId: report.registrationId || "",
+    testCenterName: report.testCenterName || "",
+    testCenterAddress1: report.testCenterAddress1 || "",
+    testCenterAddress2: report.testCenterAddress2 || "",
+    testCenterCity: report.testCenterCity || "",
+    testCenterState: report.testCenterState || "",
+    testCenterCountry: report.testCenterCountry || "",
+    testCenterPostalCode: report.testCenterPostalCode || "",
+    timezone: report.timezone || "",
+  };
+}
+
+async function handleLegacyPearsonApi(req, res, pathname) {
+  if (pathname === "/api/Monitoring/monitor" && req.method === "POST") {
+    sendJson(res, 200, { ok: true });
+    return true;
+  }
+
+  if (req.method !== "GET") {
+    return false;
+  }
+
+  const user = await optionalRequestUser(req);
+
+  if (pathname === "/api/features") {
+    sendJson(res, 200, {});
+    return true;
+  }
+
+  if (pathname === "/api/UserDetails" || pathname === "/api/Users") {
+    sendJson(res, 200, user ? legacyUser(user) : {});
+    return true;
+  }
+
+  if (pathname.startsWith("/api/UserDetails/") || pathname.startsWith("/api/Users/")) {
+    sendJson(res, 200, user ? legacyUser(user) : {});
+    return true;
+  }
+
+  if (pathname === "/api/appointments") {
+    const tests = user
+      ? await prisma.test.findMany({
+          where: { userId: user.id },
+          orderBy: { testDate: "desc" },
+          include: { scoreReport: true },
+        })
+      : [];
+
+    sendJson(res, 200, tests.map(legacyAppointment));
+    return true;
+  }
+
+  if (pathname === "/api/ptetests" || pathname === "/api/ptetests/") {
+    sendJson(res, 200, [{ id: "pte-academic", name: "PTE Academic" }]);
+    return true;
+  }
+
+  if (pathname === "/api/Countries") {
+    sendJson(res, 200, []);
+    return true;
+  }
+
+  if (pathname === "/api/WafCaptchaConfiguration/waf-key") {
+    sendJson(res, 200, {});
+    return true;
+  }
+
+  if (pathname.startsWith("/api/IgniteCarts/")) {
+    sendJson(res, 200, { items: [] });
+    return true;
+  }
+
+  return false;
 }
 
 function shouldProtectPage(pathname) {

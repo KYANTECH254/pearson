@@ -124,6 +124,10 @@
       test = null;
     }
 
+    if (test && id === "latest") {
+      window.history.replaceState({}, "", "/my-activity/test-score/" + encodeURIComponent(test.id));
+    }
+
     return { user: authData.user || null, test: test };
   }
 

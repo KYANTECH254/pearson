@@ -186,15 +186,48 @@ async function ensureScoreReportStore() {
       "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `);
-  // Ensure existing tables are migrated if necessary (simplified for this task)
-  await prisma.$executeRawUnsafe(`
-    ALTER TABLE "Test"
-    ALTER COLUMN "id" TYPE TEXT;
-  `).catch(() => {});
+  await prisma.$executeRawUnsafe(`ALTER TABLE "TestScoreReport" DROP CONSTRAINT IF EXISTS "TestScoreReport_testId_fkey"`).catch(() => {});
+  await prisma.$executeRawUnsafe(`ALTER TABLE "Test" ALTER COLUMN "id" DROP DEFAULT`).catch(() => {});
+  await prisma.$executeRawUnsafe(`ALTER TABLE "TestScoreReport" ALTER COLUMN "id" DROP DEFAULT`).catch(() => {});
+  await prisma.$executeRawUnsafe(`ALTER TABLE "Test" ALTER COLUMN "id" TYPE TEXT USING "id"::TEXT`).catch(() => {});
+  await prisma.$executeRawUnsafe(`ALTER TABLE "TestScoreReport" ALTER COLUMN "id" TYPE TEXT USING "id"::TEXT`).catch(() => {});
+  await prisma.$executeRawUnsafe(`ALTER TABLE "TestScoreReport" ALTER COLUMN "testId" TYPE TEXT USING "testId"::TEXT`).catch(() => {});
   await prisma.$executeRawUnsafe(`
     ALTER TABLE "TestScoreReport"
-    ALTER COLUMN "id" TYPE TEXT,
-    ALTER COLUMN "testId" TYPE TEXT;
+    ADD CONSTRAINT "TestScoreReport_testId_fkey"
+    FOREIGN KEY ("testId") REFERENCES "Test"("id") ON DELETE CASCADE
+  `).catch(() => {});
+  await migrateLegacyNumericTestIds();
+}
+
+async function migrateLegacyNumericTestIds() {
+  const tests = await prisma.$queryRawUnsafe(`
+    SELECT "id" FROM "Test" WHERE "id" ~ '^[0-9]+$'
+  `).catch(() => []);
+  const reports = await prisma.$queryRawUnsafe(`
+    SELECT "id" FROM "TestScoreReport" WHERE "id" ~ '^[0-9]+$'
+  `).catch(() => []);
+
+  if (!tests.length && !reports.length) {
+    return;
+  }
+
+  await prisma.$executeRawUnsafe(`ALTER TABLE "TestScoreReport" DROP CONSTRAINT IF EXISTS "TestScoreReport_testId_fkey"`).catch(() => {});
+
+  for (const test of tests) {
+    const nextId = randomHexId();
+    await prisma.$executeRawUnsafe(`UPDATE "Test" SET "id" = $1 WHERE "id" = $2`, nextId, test.id);
+    await prisma.$executeRawUnsafe(`UPDATE "TestScoreReport" SET "testId" = $1 WHERE "testId" = $2`, nextId, test.id);
+  }
+
+  for (const report of reports) {
+    await prisma.$executeRawUnsafe(`UPDATE "TestScoreReport" SET "id" = $1 WHERE "id" = $2`, randomHexId(), report.id);
+  }
+
+  await prisma.$executeRawUnsafe(`
+    ALTER TABLE "TestScoreReport"
+    ADD CONSTRAINT "TestScoreReport_testId_fkey"
+    FOREIGN KEY ("testId") REFERENCES "Test"("id") ON DELETE CASCADE
   `).catch(() => {});
 }
 
