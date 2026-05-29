@@ -56,6 +56,17 @@ function randomReportCode() {
   return Math.random().toString(36).slice(2, 8).padEnd(6, "x") + randomDigits(4);
 }
 
+function randomHexId(length = 24) {
+  const alphabet = "0123456789abcdef";
+  let id = "";
+
+  while (id.length < length) {
+    id += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+
+  return id;
+}
+
 function scoreReportData(body, test) {
   const metadata = {
     ...(parseMetadata(body.metadata) || {}),
@@ -68,6 +79,7 @@ function scoreReportData(body, test) {
   const testCenterId = String(body.testCenterId || (metadata && metadata.testCenterId) || "").trim();
 
   return {
+    id: randomHexId(),
     reportCode: reportCode || randomReportCode(),
     registrationId: registrationId || randomDigits(9),
     testTime: testTime || null,
@@ -232,6 +244,7 @@ async function createUserTest(req, res) {
 
   const test = await prisma.test.create({
     data: {
+      id: randomHexId(),
       userId: user.id,
       title,
       description: description || null,
@@ -299,6 +312,7 @@ async function createAdminTest(req, res) {
 
   const test = await prisma.test.create({
     data: {
+      id: randomHexId(),
       userId: existingUser.id,
       title,
       description: description || null,
@@ -420,26 +434,10 @@ async function getUserTest(req, res, id) {
   }
 
   const isLatest = !id || id === "latest";
+  const where = { userId: user.id };
 
-  // Scoping logic:
-  // 1. If user is ADMIN and an ID is provided, fetch that specific test.
-  // 2. If user is ADMIN and no ID (latest), fetch THEIR latest test.
-  // 3. If user is NOT ADMIN, ALWAYS filter by THEIR userId.
-
-  const where = {};
-
-  if (user.role === "ADMIN") {
-    if (!isLatest) {
-      where.id = id;
-    } else {
-      where.userId = user.id; // Admin's own latest
-    }
-  } else {
-    // Regular user: must be their own
-    where.userId = user.id;
-    if (!isLatest) {
-      where.id = id;
-    }
+  if (!isLatest) {
+    where.id = id;
   }
 
   const test = await prisma.test.findFirst({

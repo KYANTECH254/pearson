@@ -39,7 +39,6 @@ const cartRoute = "/orders/shoppingcart";
 const routeAliases = new Map([
   ["/activity", "activity.html"],
   ["/my-activity", "my-activity.html"],
-  ["/my-activity/test-score/69ee8736b59b9ff4b555f82e", scoreReportTemplate],
   ["/my-activity/test-score/latest", scoreReportTemplate],
   ["/account", "account.html"],
   ["/admin", "admin.html"],

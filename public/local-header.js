@@ -1687,11 +1687,8 @@
     }
 
     id = route.split("/").pop();
-    data = await apiJson("/api/user/tests/" + encodeURIComponent(id)).catch(async function () {
-      var list = await apiJson("/api/user/tests").catch(function () {
-        return { tests: [] };
-      });
-      return { test: list.tests[0] || null };
+    data = await apiJson("/api/user/tests/" + encodeURIComponent(id)).catch(function () {
+      return { test: null };
     });
     auth = await apiJson("/api/auth/me").catch(function () {
       return {};
@@ -1699,6 +1696,8 @@
     test = data.test;
 
     if (!test) {
+      setScoreValue("#text_test_name", "Score report not found");
+      setScoreValue("#text_test_time", "This test score is not available for the signed-in user.");
       return;
     }
 
@@ -1852,7 +1851,7 @@
 
   function renderResourceMeta(resource) {
     return [resource.type, resource.time].filter(Boolean).map(function (value) {
-      return '<span class="local-free-resources__meta-pill">' + escapeHtml(value) + '</span>';
+      return '<span class="chip"><span>' + escapeHtml(value) + '</span></span>';
     }).join("");
   }
 
@@ -1866,12 +1865,17 @@
       items.map(function (item) {
         return [
           '<article class="learn-free-product-card local-free-resources__card">',
-          item.thumbnail ? '<img class="local-free-resources__thumb" src="' + escapeHtml(item.thumbnail) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : '',
-          '<div class="local-free-resources__card-body">',
-          '<div class="local-free-resources__card-title">' + escapeHtml(item.title) + '</div>',
-          '<div class="local-free-resources__meta">' + renderResourceMeta(item) + '</div>',
-          item.text ? '<p class="local-free-resources__text">' + escapeHtml(item.text) + '</p>' : '',
-          item.url ? '<a class="ignite-link local-free-resources__link" href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener">Open resource</a>' : '',
+          item.thumbnail ? '<a class="learn-free-product-card__thumbnail" href="' + escapeHtml(item.url || "#") + '" target="_blank" rel="noopener" style="background-image:url(' + escapeHtml(item.thumbnail) + ')" aria-label="' + escapeHtml(item.title) + '"></a>' : '',
+          '<div class="learn-free-product-card__wrapper">',
+          '<div class="learn-free-product-card__header">',
+          item.thumbnail ? '<a class="learn-free-product-card__thumbnail--mini" href="' + escapeHtml(item.url || "#") + '" target="_blank" rel="noopener" style="background-image:url(' + escapeHtml(item.thumbnail) + ')" aria-label="' + escapeHtml(item.title) + '"></a>' : '',
+          '<div>',
+          '<div class="learn-free-product-card__title">' + escapeHtml(item.title) + '</div>',
+          '<div class="learn-free-product-card__subtitle">' + renderResourceMeta(item) + '</div>',
+          '</div>',
+          '</div>',
+          item.text ? '<div class="learn-free-product-card__content">' + escapeHtml(item.text) + '</div>' : '',
+          item.url ? '<div class="learn-free-product-card__buttons"><a class="learn-free-product-card__buttons__button" href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener">Open resource</a></div>' : '',
           '</div>',
           '</article>',
         ].join("");
@@ -1907,7 +1911,7 @@
               '<div class="local-free-resources__meta">' + renderResourceMeta({ type: item.price && item.price !== "0" ? item.price : "Free", time: item.time }) + '</div>',
               '</div>',
               actions.length ? '<div class="local-free-resources__actions">' + actions.map(function (action) {
-                return '<a class="ignite-link local-free-resources__link" href="' + escapeHtml(action.actionUrl) + '" target="_blank" rel="noopener">' + escapeHtml(action.title || "Open resource") + '</a>';
+                return '<a class="ignite-link local-free-resources__link" href="' + escapeHtml(action.actionUrl) + '" target="_blank" rel="noopener">' + escapeHtml(action.title || "Open resource") + (action.time ? " - " + escapeHtml(action.time) : "") + '</a>';
               }).join("") + '</div>' : '',
               '</article>',
             ].join("");

@@ -2,13 +2,13 @@ const fs = require("fs");
 const path = require("path");
 
 const publicDir = path.join(__dirname, "..", "public");
-const defaultScoreReportPath = "/my-activity/test-score/69ee8736b59b9ff4b555f82e";
+const defaultScoreReportPath = "/my-activity/test-score/latest";
 const pages = [
   "index.html",
   "learn.html",
   "activity.html",
   "my-activity.html",
-  "my-activity/test-score/69ee8736b59b9ff4b555f82e/index.html",
+  "my-activity/test-score/template/index.html",
   "account.html",
   "cart.html",
 ].filter((page) => fs.existsSync(path.join(publicDir, page)));
