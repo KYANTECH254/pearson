@@ -1,5 +1,5 @@
 (function () {
-  var defaultScoreReportPath = "/my-activity/test-score/69ee8736b59b9ff4b555f82e";
+  var defaultScoreReportPath = "/my-activity/test-score/latest";
   var loginRoute = "/Account/Login";
   var loginRedirectUrl = window.location.origin + loginRoute;
   var cartRoute = "/orders/shoppingcart";

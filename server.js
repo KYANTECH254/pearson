@@ -31,7 +31,7 @@ const { sendJson } = require("./lib/http");
 
 const publicDir = path.join(__dirname, "public");
 const preferredPort = Number(process.env.PORT || 3000);
-const scoreReportTemplate = "my-activity/test-score/69ee8736b59b9ff4b555f82e/index.html";
+const scoreReportTemplate = "my-activity/test-score/template/index.html";
 const loginRoute = "/Account/Login";
 const loginOrigin = (process.env.LOCAL_LOGIN_ORIGIN || "https://id.mypte.pearsonpte.com").replace(/\/+$/, "");
 const dashboardOrigin = (process.env.LOCAL_DASHBOARD_ORIGIN || "https://mypte.pearsonpte.com").replace(/\/+$/, "");
@@ -40,6 +40,7 @@ const routeAliases = new Map([
   ["/activity", "activity.html"],
   ["/my-activity", "my-activity.html"],
   ["/my-activity/test-score/69ee8736b59b9ff4b555f82e", scoreReportTemplate],
+  ["/my-activity/test-score/latest", scoreReportTemplate],
   ["/account", "account.html"],
   ["/admin", "admin.html"],
   ["/users/edit-user-account/collapse", "account.html"],
