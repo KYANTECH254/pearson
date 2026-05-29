@@ -7,8 +7,17 @@ const { optionalProfileData } = require("../lib/userProfile");
 
 const sessionCookie = "pearson_session";
 const sessionMaxAgeSeconds = 60 * 60 * 24 * 30;
-const sessionCookieOptions = `Path=/; HttpOnly; SameSite=Lax; Max-Age=${sessionMaxAgeSeconds}`;
+const sessionCookieDomain = process.env.SESSION_COOKIE_DOMAIN || ".mypte.pearsonpte.com";
+const sessionCookieOptions = `Path=/; HttpOnly; SameSite=Lax; Max-Age=${sessionMaxAgeSeconds}${sessionCookieDomain ? `; Domain=${sessionCookieDomain}` : ""}`;
 const sessionSecret = process.env.SESSION_SECRET || process.env.AUTH_SECRET || process.env.DATABASE_URL || "pearson-dashboard-local-session-secret";
+
+function sessionCookieHeader(token) {
+  return `${sessionCookie}=${encodeURIComponent(token)}; ${sessionCookieOptions}`;
+}
+
+function clearSessionCookieHeader() {
+  return `${sessionCookie}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${sessionCookieDomain ? `; Domain=${sessionCookieDomain}` : ""}`;
+}
 
 function base64UrlEncode(value) {
   return Buffer.from(JSON.stringify(value)).toString("base64url");
@@ -177,6 +186,11 @@ async function currentUser(req) {
   const authHeader = String(req.headers.authorization || "");
   const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
   const token = bearerToken || parseCookies(req)[sessionCookie];
+
+  return userFromSessionToken(token);
+}
+
+async function userFromSessionToken(token) {
   const signedSession = token ? getSignedSession(token) : null;
 
   if (!signedSession) {
@@ -229,9 +243,9 @@ async function login(req, res) {
   }
 
   const token = await setSession(user);
-  sendJson(res, 200, { token, user: publicUser(user) }, {
-    "Set-Cookie": `${sessionCookie}=${encodeURIComponent(token)}; ${sessionCookieOptions}`,
-  });
+  // Return token and user only. Do not set a session cookie so clients can
+  // persist the token in localStorage and use Authorization: Bearer <token>.
+  sendJson(res, 200, { token, user: publicUser(user) });
 }
 
 async function register(req, res) {
@@ -262,9 +276,8 @@ async function register(req, res) {
     user = await assignPteId(prisma, user);
     const token = await setSession(user);
 
-    sendJson(res, 201, { token, user: publicUser(user) }, {
-      "Set-Cookie": `${sessionCookie}=${encodeURIComponent(token)}; ${sessionCookieOptions}`,
-    });
+    // Return token and user without setting a cookie.
+    sendJson(res, 201, { token, user: publicUser(user) });
   } catch (error) {
     if (error.code === "P2002") {
       sendJson(res, 409, { error: "Email or username already exists." });
@@ -296,7 +309,7 @@ async function logout(req, res) {
   }
 
   sendJson(res, 200, { ok: true }, {
-    "Set-Cookie": `${sessionCookie}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
+    "Set-Cookie": clearSessionCookieHeader(),
   });
 }
 
@@ -316,4 +329,6 @@ module.exports = {
   me,
   publicUser,
   register,
+  sessionCookieHeader,
+  userFromSessionToken,
 };

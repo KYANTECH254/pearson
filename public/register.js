@@ -328,7 +328,7 @@
     document.querySelectorAll(".back-button").forEach(function (link) {
       link.addEventListener("click", function (event) {
         event.preventDefault();
-        window.location.href = "/login";
+        window.location.href = "https://id.mypte.pearsonpte.com/Account/Login";
       });
     });
 

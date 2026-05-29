@@ -22,7 +22,7 @@ function loadEnv() {
 
 loadEnv();
 
-const { login, logout, me, register, ensureDefaultAdmin, ensureSessionStore, currentUser } = require("./controllers/authController");
+const { login, logout, me, register, ensureDefaultAdmin, ensureSessionStore, currentUser, sessionCookieHeader, userFromSessionToken } = require("./controllers/authController");
 const { createUser, listUsers, updateAdminUser, updateProfile, updatePassword, updatePrivacy } = require("./controllers/userController");
 const { listUserTests, createUserTest, listAllTests, createAdminTest, updateAdminTest, getUserTest, ensureScoreReportStore } = require("./controllers/testController");
 const { getProducts, createProduct, updateProduct, deleteProduct } = require("./controllers/productController");
@@ -32,6 +32,10 @@ const { sendJson } = require("./lib/http");
 const publicDir = path.join(__dirname, "public");
 const preferredPort = Number(process.env.PORT || 3000);
 const scoreReportTemplate = "my-activity/test-score/69ee8736b59b9ff4b555f82e/index.html";
+const loginRoute = "/Account/Login";
+const loginOrigin = (process.env.LOCAL_LOGIN_ORIGIN || "https://id.mypte.pearsonpte.com").replace(/\/+$/, "");
+const dashboardOrigin = (process.env.LOCAL_DASHBOARD_ORIGIN || "https://mypte.pearsonpte.com").replace(/\/+$/, "");
+const cartRoute = "/orders/shoppingcart";
 const routeAliases = new Map([
   ["/activity", "activity.html"],
   ["/my-activity", "my-activity.html"],
@@ -40,11 +44,12 @@ const routeAliases = new Map([
   ["/admin", "admin.html"],
   ["/users/edit-user-account/collapse", "account.html"],
   ["/users/edit-user-account", "account.html"],
-  ["/cart", "cart.html"],
+  [cartRoute, "cart.html"],
   ["/learn", "learn.html"],
-  ["/login", "login.html"],
+  [loginRoute, "login.html"],
   ["/logout", "login.html"],
   ["/users/profile/quick-registration", "register.html"],
+  ["/", "index.html"],
   ["/myPTE", "index.html"],
   ["/mypte", "index.html"],
   ["/dashboard", "index.html"],
@@ -248,7 +253,7 @@ function shouldProtectPage(pathname) {
     "/activity",
     "/admin",
     "/account",
-    "/cart",
+    cartRoute,
     "/dashboard",
     "/learn",
     "/my-activity",
@@ -273,13 +278,13 @@ async function authorizePageAccess(req, res, pathname) {
   const user = await currentUser(req);
 
   if (!user) {
-    res.writeHead(302, { Location: "/login" });
+    res.writeHead(302, { Location: getLoginRedirectUrl(req) });
     res.end();
     return true;
   }
 
   if (pathname === "/admin" && user.role !== "ADMIN") {
-    res.writeHead(302, { Location: "/login" });
+    res.writeHead(302, { Location: getLoginRedirectUrl(req) });
     res.end();
     return true;
   }
@@ -287,8 +292,73 @@ async function authorizePageAccess(req, res, pathname) {
   return false;
 }
 
+function getSafeDashboardReturnUrl(value) {
+  const fallback = new URL("/", dashboardOrigin);
+
+  if (!value) {
+    return fallback.href;
+  }
+
+  try {
+    const url = new URL(value, dashboardOrigin);
+
+    return url.origin === dashboardOrigin ? url.href : fallback.href;
+  } catch (error) {
+    return fallback.href;
+  }
+}
+
+function getLoginRedirectUrl(req) {
+  const requestUrl = new URL(req.url || "/", dashboardOrigin);
+  const returnUrl = new URL(requestUrl.pathname + requestUrl.search, dashboardOrigin);
+  const url = new URL(loginRoute, loginOrigin);
+
+  url.searchParams.set("returnUrl", returnUrl.href);
+  return url.href;
+}
+
+async function handleLocalSessionHandoff(req, res, url) {
+  const token = url.searchParams.get("token") || "";
+  const returnUrl = getSafeDashboardReturnUrl(url.searchParams.get("returnUrl"));
+  const user = await userFromSessionToken(token);
+
+  if (!user) {
+    const loginUrl = new URL(loginRoute, loginOrigin);
+
+    loginUrl.searchParams.set("returnUrl", returnUrl);
+    res.writeHead(302, { Location: loginUrl.href });
+    res.end();
+    return true;
+  }
+
+  res.writeHead(302, {
+    "Cache-Control": "no-store",
+    "Location": returnUrl,
+    "Set-Cookie": sessionCookieHeader(token),
+  });
+  res.end();
+  return true;
+}
+
 async function handleRequest(req, res) {
   const url = new URL(req.url || "/", "http://localhost");
+
+  if (url.pathname === "/auth/local-session") {
+    await handleLocalSessionHandoff(req, res, url);
+    return;
+  }
+
+  if (url.pathname === "/login") {
+    res.writeHead(302, { Location: getLoginRedirectUrl(req) });
+    res.end();
+    return;
+  }
+
+  if (url.pathname === "/cart") {
+    res.writeHead(302, { Location: cartRoute });
+    res.end();
+    return;
+  }
 
   if (await handleApiRequest(req, res, url.pathname)) {
     return;

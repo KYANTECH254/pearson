@@ -8,3 +8,5 @@ prisma/*.db
 prisma/*.db-journal
 .postgres-data/
 .postgres-socket/
+.agents
+.codex

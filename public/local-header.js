@@ -1,5 +1,8 @@
 (function () {
   var defaultScoreReportPath = "/my-activity/test-score/69ee8736b59b9ff4b555f82e";
+  var loginRoute = "/Account/Login";
+  var loginRedirectUrl = "https://id.mypte.pearsonpte.com" + loginRoute;
+  var cartRoute = "/orders/shoppingcart";
   var internalRoutes = new Set([
     "/",
     "/activity",
@@ -9,8 +12,8 @@
     "/admin",
     "/users/edit-user-account",
     "/users/edit-user-account/collapse",
-    "/cart",
-    "/login",
+    cartRoute,
+    loginRoute,
     "/logout",
     "/users/profile/quick-registration",
     "/myPTE",
@@ -27,7 +30,7 @@
     "/admin",
     "/users/edit-user-account",
     "/users/edit-user-account/collapse",
-    "/cart",
+    cartRoute,
     "/myPTE",
     "/mypte",
     "/dashboard",
@@ -43,6 +46,7 @@
   };
   var preloaderVisibleFrom = 0;
   var authStorageKey = "pearson_session_token";
+  var cartStorageKey = "pearson_cart_items";
 
   function closeAll(exceptMenu) {
     document.querySelectorAll("ignite-profile-menu").forEach(function (menu) {
@@ -292,6 +296,455 @@
     }
 
     return headers;
+  }
+
+  function readCart() {
+    try {
+      var parsed = JSON.parse(window.localStorage.getItem(cartStorageKey) || "[]");
+
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function writeCart(items) {
+    try {
+      window.localStorage.setItem(cartStorageKey, JSON.stringify(items));
+    } catch (error) {}
+
+    updateCartBadge();
+  }
+
+  function normalizeQuantity(value, fallback) {
+    var quantity = parseInt(value, 10);
+
+    if (!Number.isFinite(quantity) || quantity < 1) {
+      return fallback || 1;
+    }
+
+    return quantity;
+  }
+
+  function escapeHtml(value) {
+    return String(value || "").replace(/[&<>"']/g, function (character) {
+      return {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      }[character];
+    });
+  }
+
+  function parsePrice(priceText) {
+    var normalized = String(priceText || "").replace(/\s+/g, "");
+    var match = normalized.match(/^([^0-9.-]*)([0-9,]+(?:\.[0-9]+)?)/);
+
+    return {
+      currency: match ? match[1] || "AU$" : "AU$",
+      price: match ? Number(match[2].replace(/,/g, "")) || 0 : 0,
+    };
+  }
+
+  function formatMoney(currency, price) {
+    return (currency || "AU$") + Number(price || 0).toFixed(2);
+  }
+
+  function makeCartId(item) {
+    return [item.title, item.variant || ""].join("|").toLowerCase().replace(/[^a-z0-9|]+/g, "-");
+  }
+
+  function updateCartBadge() {
+    var total = readCart().reduce(function (sum, item) {
+      return sum + normalizeQuantity(item.quantity, 1);
+    }, 0);
+
+    document.querySelectorAll("#shoppingcart-icon").forEach(function (icon) {
+      var badge = icon.querySelector(".total-items");
+
+      if (!badge && total > 0) {
+        badge = document.createElement("span");
+        badge.className = "total-items";
+        badge.setAttribute("_ngcontent-ng-c955525872", "");
+        icon.appendChild(badge);
+      }
+
+      if (badge) {
+        badge.textContent = String(total);
+        badge.hidden = total < 1;
+      }
+    });
+  }
+
+  function playCartAddedAnimation() {
+    document.querySelectorAll("#shoppingcart-icon").forEach(function (icon) {
+      icon.classList.remove("local-cart-added");
+      void icon.offsetWidth;
+      icon.classList.add("local-cart-added");
+      window.setTimeout(function () {
+        icon.classList.remove("local-cart-added");
+      }, 520);
+    });
+  }
+
+  function addCartItem(item) {
+    var items = readCart();
+    var id = item.id || makeCartId(item);
+    var existing = items.find(function (cartItem) {
+      return cartItem.id === id;
+    });
+    var quantity = normalizeQuantity(item.quantity, 1);
+
+    if (existing) {
+      existing.quantity = normalizeQuantity(existing.quantity, 1) + quantity;
+    } else {
+      items.push(Object.assign({}, item, {
+        id: id,
+        quantity: quantity,
+      }));
+    }
+
+    writeCart(items);
+  }
+
+  function getText(root, selector) {
+    var element = root ? root.querySelector(selector) : null;
+
+    return element ? element.textContent.trim().replace(/\s+/g, " ") : "";
+  }
+
+  function productFromLearnButton(button) {
+    var product = button.closest("recommended-product");
+    var bundle = button.closest("recommended-bundle");
+    var root = product || bundle;
+    var title = product ? getText(root, ".product-title") : getText(root, ".product-name");
+    var description = getText(root, ".product-description");
+    var priceInfo = parsePrice(getText(root, ".product-price, .product-info-container span:last-child"));
+    var quantityInput = product ? root.querySelector(".cart-product-input") : null;
+    var image = root ? root.querySelector("img") : null;
+    var variant = getText(root, ".mat-mdc-select-value-text, .variant-dropdown option:checked");
+
+    if (!title) {
+      return null;
+    }
+
+    return {
+      title: title,
+      description: description,
+      currency: priceInfo.currency,
+      price: priceInfo.price,
+      imageUrl: image ? image.getAttribute("src") : "",
+      quantity: product ? normalizeQuantity(quantityInput && quantityInput.value, 1) : 1,
+      variant: /^version:?$/i.test(variant) ? "" : variant,
+      type: product ? "Individual" : "Package",
+    };
+  }
+
+  var fallbackAdditionalProducts = [
+    { title: "Scored Practice Test", category: "PTE Academic", type: "Individual", description: "Just like the real test, with a complete score report. The best way to check you are ready for PTE Academic.", price: 59.99, currency: "AU$", imageUrl: "/assets/cdn11.bigcommerce.com/s-kymzzd0jes/products/137/images/407/A103000356113_Std__44175.1752120318.386.513__c_1.jpg" },
+    { title: "The Official Guide to PTE Academic 3e", category: "PTE Academic", type: "Individual", description: "Tips from experts and lots of extra digital practice resources in a convenient eBook.", price: 33.99, currency: "AU$", imageUrl: "/assets/cdn11.bigcommerce.com/s-kymzzd0jes/products/142/images/412/A103000356132_Std__46948.1752120324.386.513__c_1.jpg" },
+    { title: "PTE Academic Question Bank", category: "PTE Academic", type: "Individual", description: "300 practice questions with model answers, plus samples for speaking and writing.", price: 33.99, currency: "AU$", imageUrl: "/assets/cdn11.bigcommerce.com/s-kymzzd0jes/products/126/images/392/1732090791.386.513__c_1.jpg" },
+    { title: "PTE Expert – Self Study Guide B1", category: "PTE Academic", type: "Individual", description: "Target 43-59 with this 170+ page eBook which includes online test practice.", price: 80.99, currency: "AU$", imageUrl: "/assets/cdn11.bigcommerce.com/s-kymzzd0jes/products/144/images/416/A103000356132_Std__08406.1758866958.386.513__c_1.jpg" },
+  ];
+  var pteCoreShop = {
+    products: [
+      { title: "PTE Core Question Bank", description: "294 practice questions with model answers, plus samples for speaking and writing.", price: 33.99, currency: "AU$", imageUrl: "https://cdn11.bigcommerce.com/s-kymzzd0jes/products/149/images/421/A103000356132_Std__06694.1774857398.386.513.jpg?c=1" },
+      { title: "Official Guide to PTE Core", description: "The Official Guide to PTE Core provides authentic practice, step by step guidance, and proven strategies to help test takers confidently approach every task in the exam.", price: 33.99, currency: "AU$", imageUrl: "https://cdn11.bigcommerce.com/s-kymzzd0jes/products/150/images/422/A103000356132_Std__90923.1774857399.386.513.jpg?c=1" },
+      { title: "PTE Core Preparation Course", description: "Master every PTE Core task type with this structured eBook, featuring 20 step by step lessons that build the skills and strategies you need to succeed.", price: 29.99, currency: "AU$", imageUrl: "https://cdn11.bigcommerce.com/s-kymzzd0jes/products/148/images/420/A103000356132_Std__03788.1774857397.386.513.jpg?c=1" },
+      { title: "PTE Core Scored Practice Test Version 1", description: "Just like the real test, with a complete score report. The best way to check you are ready for PTE Core.", price: 59.99, currency: "AU$", imageUrl: "https://cdn11.bigcommerce.com/s-kymzzd0jes/products/143/images/415/A103000356113_Std__77163.1758866958.386.513.jpg?c=1" },
+    ],
+    bundles: [
+      { title: "PTE Core Essential Package", description: "1 Scored Practice Test · PTE Core Question Bank", price: 74.99, currency: "AU$", imageUrl: "https://cdn11.bigcommerce.com/s-kymzzd0jes/products/151/images/423/A103000356119_Std__49927.1774857399.386.513.jpg?c=1" },
+      { title: "PTE Core Premium Package", description: "1 Scored Practice Test · PTE Core Question Bank · Official Guide to PTE Core · PTE Core Preparation Course", price: 104.99, currency: "AU$", imageUrl: "https://cdn11.bigcommerce.com/s-kymzzd0jes/products/152/images/424/A103000356119_Std__79121.1774857400.386.513.jpg?c=1" },
+    ],
+  };
+
+  function productToCartItem(product) {
+    return {
+      title: product.title,
+      description: product.description,
+      currency: product.currency || "AU$",
+      price: Number(product.price || 0),
+      imageUrl: product.imageUrl || "",
+      quantity: 1,
+      type: product.type || "Individual",
+    };
+  }
+
+  async function getAdditionalProducts(items) {
+    var products = await fetch("/api/products", {
+      credentials: "same-origin",
+      headers: authHeaders(),
+    }).then(function (response) {
+      return response.ok ? response.json() : fallbackAdditionalProducts;
+    }).catch(function () {
+      return fallbackAdditionalProducts;
+    });
+    var existing = new Set(items.map(makeCartId));
+
+    return products.filter(function (product) {
+      return product && product.isAvailable !== false && product.type === "Individual" && !existing.has(makeCartId(product));
+    }).slice(0, 4);
+  }
+
+  function renderCartProduct(item) {
+    return [
+      '<cart-product class="local-cart-product" data-cart-id="' + escapeHtml(item.id) + '">',
+      '<div class="local-cart-product__card">',
+      '<img class="local-cart-product__image" src="' + escapeHtml(item.imageUrl || "assets/no-image.png") + '" alt="">',
+      '<div class="local-cart-product__content">',
+      '<div class="local-cart-product__title">' + escapeHtml(item.title) + '</div>',
+      item.variant ? '<div class="local-cart-product__meta">' + escapeHtml(item.variant) + '</div>' : '',
+      item.description ? '<div class="local-cart-product__description">' + escapeHtml(item.description) + '</div>' : '',
+      '<button class="local-cart-product__remove ignite-link" type="button">Remove</button>',
+      '</div>',
+      '<div class="local-cart-product__side">',
+      '<div class="local-cart-product__price">' + escapeHtml(formatMoney(item.currency, item.price)) + '</div>',
+      '<input class="local-cart-product__quantity" type="number" min="1" max="10" value="' + normalizeQuantity(item.quantity, 1) + '" aria-label="Quantity">',
+      '</div>',
+      '</div>',
+      '</cart-product>',
+    ].join("");
+  }
+
+  function renderAdditionalProduct(product) {
+    return [
+      '<recommended-product class="local-cart-additional-product">',
+      '<div class="recommended-product-container">',
+      '<div class="inner-container">',
+      '<div class="left-flex-box"><img role="presentation" alt="" src="' + escapeHtml(product.imageUrl || "assets/no-image.png") + '"></div>',
+      '<div class="right-flex-box"><div class="product-info">',
+      '<div class="product-name-container"><div class="product-name">',
+      '<p class="product-title">' + escapeHtml(product.title) + '</p>',
+      '<div class="product-description">' + escapeHtml(product.description || "") + '</div>',
+      '</div></div>',
+      '<div class="product-price-container">',
+      '<p class="product-price">' + escapeHtml(formatMoney(product.currency || "AU$", product.price)) + '</p>',
+      '<div class="add-button-container ignite-dialog-buttons-container"><button id="add-button" type="button" color="secondary" class="mdc-button mat-mdc-button-base ignite-button mat-mdc-button mat-secondary"><span class="mat-mdc-button-persistent-ripple mdc-button__ripple"></span><span class="mdc-button__label"> Add to cart </span><span class="mat-focus-indicator"></span><span class="mat-mdc-button-touch-target"></span></button></div>',
+      '</div>',
+      '</div></div>',
+      '</div>',
+      '</div>',
+      '</recommended-product>',
+    ].join("");
+  }
+
+  function renderLearnProduct(product) {
+    return [
+      '<recommended-product _ngcontent-ng-c4095635256="" _nghost-ng-c2976340318="" class="ng-star-inserted">',
+      '<div _ngcontent-ng-c2976340318="" class="recommended-product-container">',
+      '<div _ngcontent-ng-c2976340318="" class="inner-container ng-star-inserted">',
+      '<div _ngcontent-ng-c2976340318="" class="left-flex-box"><img _ngcontent-ng-c2976340318="" role="presentation" alt="" src="' + escapeHtml(product.imageUrl) + '"></div>',
+      '<div _ngcontent-ng-c2976340318="" class="right-flex-box">',
+      '<div _ngcontent-ng-c2976340318="" class="product-info">',
+      '<div _ngcontent-ng-c2976340318="" class="product-name-container">',
+      '<div _ngcontent-ng-c2976340318="" class="product-name">',
+      '<p _ngcontent-ng-c2976340318="" class="product-title"> ' + escapeHtml(product.title) + ' </p>',
+      '<div _ngcontent-ng-c2976340318="" class="product-description ng-star-inserted">' + escapeHtml(product.description) + '</div>',
+      '<div _ngcontent-ng-c2976340318="" class="show-more-less ng-star-inserted"><div _ngcontent-ng-c2976340318="" class="show-label"><span _ngcontent-ng-c2976340318="">Show more</span><i _ngcontent-ng-c2976340318="" class="fas fa-chevron-down"></i></div><hr _ngcontent-ng-c2976340318=""></div>',
+      '</div>',
+      '<div _ngcontent-ng-c2976340318=""><quantity-input _ngcontent-ng-c2976340318="" _nghost-ng-c641270213=""><div _ngcontent-ng-c641270213="" class="quantity-input-container"><form _ngcontent-ng-c641270213="" novalidate="" class="ng-untouched ng-pristine ng-valid"><input _ngcontent-ng-c641270213="" id="quantity-input" matinput="" formcontrolname="quantity" type="number" step="1" class="mat-mdc-input-element cart-product-input ng-untouched ng-pristine ng-valid cdk-text-field-autofill-monitored" required="" aria-invalid="false" aria-required="true" min="1" max="7"></form></div></quantity-input></div>',
+      '</div>',
+      '<div _ngcontent-ng-c2976340318="" class="product-price-container">',
+      '<p _ngcontent-ng-c2976340318="" class="product-price"> ' + escapeHtml(formatMoney(product.currency, product.price)) + ' </p>',
+      '<div _ngcontent-ng-c2976340318="" class="add-button-container ignite-dialog-buttons-container"><button _ngcontent-ng-c2976340318="" id="add-button" mat-button="" color="secondary" class="mdc-button mat-mdc-button-base ignite-button mat-mdc-button mat-secondary" mat-ripple-loader-uninitialized="" mat-ripple-loader-class-name="mat-mdc-button-ripple"><span class="mat-mdc-button-persistent-ripple mdc-button__ripple"></span><span class="mdc-button__label"> Add to cart </span><span class="mat-focus-indicator"></span><span class="mat-mdc-button-touch-target"></span></button></div>',
+      '</div>',
+      '</div>',
+      '</div>',
+      '</div>',
+      '</div>',
+      '</recommended-product>',
+    ].join("");
+  }
+
+  function renderLearnBundle(bundle) {
+    return [
+      '<div _ngcontent-ng-c3288173268="" class="bundle-container ng-star-inserted">',
+      '<recommended-bundle _ngcontent-ng-c3288173268="" _nghost-ng-c1649838406="">',
+      '<div _ngcontent-ng-c1649838406="" class="recommended-bundle-container">',
+      '<div _ngcontent-ng-c1649838406="" class="recommended-bundle-header ng-star-inserted"><div _ngcontent-ng-c1649838406="" class="image-container"><img _ngcontent-ng-c1649838406="" src="' + escapeHtml(bundle.imageUrl) + '" alt="imageAlt" class="ng-star-inserted"></div></div>',
+      '<div _ngcontent-ng-c1649838406="" class="product-info-container ng-star-inserted"><span _ngcontent-ng-c1649838406="" class="product-name">' + escapeHtml(bundle.title) + '</span><span _ngcontent-ng-c1649838406="">' + escapeHtml(formatMoney(bundle.currency, bundle.price)) + '</span></div>',
+      '<div _ngcontent-ng-c1649838406="" class="product-description ng-star-inserted">' + escapeHtml(bundle.description) + '</div>',
+      '<div _ngcontent-ng-c1649838406="" class="add-button-container ignite-dialog-buttons-container ng-star-inserted"><button _ngcontent-ng-c1649838406="" id="add-button" mat-button="" color="secondary" class="mdc-button mat-mdc-button-base ignite-button mat-mdc-button mat-secondary" mat-ripple-loader-uninitialized="" mat-ripple-loader-class-name="mat-mdc-button-ripple"><span class="mat-mdc-button-persistent-ripple mdc-button__ripple"></span><span class="mdc-button__label">Add to cart</span><span class="mat-focus-indicator"></span><span class="mat-mdc-button-touch-target"></span></button></div>',
+      '</div>',
+      '</recommended-bundle>',
+      '</div>',
+    ].join("");
+  }
+
+  function renderPteCoreShop() {
+    return [
+      '<div _ngcontent-ng-c2781065312="" class="exam-wrapper ng-star-inserted">',
+      '<learn-products-component _ngcontent-ng-c2781065312="" _nghost-ng-c4095635256="">',
+      '<div _ngcontent-ng-c4095635256="" class="learn-products-container">',
+      '<div _ngcontent-ng-c4095635256="" class="product-type-title ng-star-inserted">PTE Core Products</div>',
+      '<div _ngcontent-ng-c4095635256="" class="recommended-products-container ng-star-inserted">',
+      '<div _ngcontent-ng-c4095635256="" class="title-bold spacer-bottom"> Shop individual products </div>',
+      '<div _ngcontent-ng-c4095635256="">' + pteCoreShop.products.map(renderLearnProduct).join("") + '</div>',
+      '</div>',
+      '<div _ngcontent-ng-c4095635256="" class="recommended-bundles-container ng-star-inserted">',
+      '<div _ngcontent-ng-c4095635256="" class="title-bold">PTE Core Packages</div>',
+      '<div _ngcontent-ng-c4095635256="" class="notes"><b _ngcontent-ng-c4095635256="">Save up to 32% and get plenty of practice for PTE Core</b></div>',
+      '<div _ngcontent-ng-c4095635256="" class="spacer">',
+      '<recommended-bundles-component _ngcontent-ng-c4095635256="" _nghost-ng-c3288173268="">',
+      '<div _ngcontent-ng-c3288173268="" class="recommended-bundles">' + pteCoreShop.bundles.map(renderLearnBundle).join("") + '</div>',
+      '<div _ngcontent-ng-c3288173268="" class="scrollers"><i _ngcontent-ng-c3288173268="" class="fas fa-chevron-left"></i><i _ngcontent-ng-c3288173268="" class="fas fa-chevron-right"></i></div>',
+      '</recommended-bundles-component>',
+      '</div>',
+      '</div>',
+      '</div>',
+      '</learn-products-component>',
+      '</div>',
+    ].join("");
+  }
+
+  function setupLearnCartButtons() {
+    if (getRoute(new URL(window.location.href)) !== "/learn") {
+      return;
+    }
+
+    Array.from(document.querySelectorAll("recommended-product #add-button, recommended-bundle #add-button")).forEach(function (button) {
+      if (button.dataset.localCartReady === "true") {
+        return;
+      }
+
+      button.dataset.localCartReady = "true";
+      button.addEventListener("click", function (event) {
+        var item;
+
+        if (button.disabled || button.getAttribute("disabled") === "true") {
+          return;
+        }
+
+        event.preventDefault();
+        item = productFromLearnButton(button);
+
+        if (!item) {
+          return;
+        }
+
+        addCartItem(item);
+        playCartAddedAnimation();
+      });
+    });
+  }
+
+  async function setupCartPage() {
+    if (getRoute(new URL(window.location.href)) !== cartRoute) {
+      return;
+    }
+
+    var wrapper = document.querySelector(".shoppingcart-wrapper");
+    var items = readCart();
+    var additionalProducts;
+
+    if (!wrapper) {
+      return;
+    }
+
+    if (!items.length) {
+      wrapper.innerHTML = [
+        '<empty-cart>',
+        '<div class="empty-cart-container">',
+        '<img src="assets/empty-cart.svg" classname="cart-image" alt="EmptyCart">',
+        '<p class="text">Your cart is empty. Discover products to add to your cart.</p>',
+        '<div class="ignite-buttons-container">',
+        '<button id="empty-cart-browse-button" class="mdc-button mat-mdc-button-base ignite-button mat-mdc-button mat-primary" type="button">',
+        '<span class="mdc-button__label"><span>Browse products</span></span>',
+        '</button>',
+        '</div>',
+        '</div>',
+        '</empty-cart>',
+      ].join("");
+
+      var browseButton = wrapper.querySelector("#empty-cart-browse-button");
+
+      if (browseButton && browseButton.dataset.localBrowseReady !== "true") {
+        browseButton.dataset.localBrowseReady = "true";
+        browseButton.addEventListener("click", function (event) {
+          event.preventDefault();
+          navigateTo("/learn");
+        });
+      }
+
+      return;
+    }
+
+    additionalProducts = await getAdditionalProducts(items);
+
+    var subtotal = items.reduce(function (sum, item) {
+      return sum + Number(item.price || 0) * normalizeQuantity(item.quantity, 1);
+    }, 0);
+    var currency = items[0].currency || "AU$";
+    var itemCount = items.reduce(function (sum, item) {
+      return sum + normalizeQuantity(item.quantity, 1);
+    }, 0);
+
+    wrapper.innerHTML = [
+      '<div class="overall-container local-cart-overall">',
+      '<div class="shoppingcart-container">',
+      '<div class="cart-quantity"><span>Shopping cart</span><span>(' + itemCount + (itemCount === 1 ? ' item' : ' items') + ')</span></div>',
+      '<div class="cart-items-container"><div class="cart-items">' + items.map(renderCartProduct).join("") + '</div></div>',
+      additionalProducts.length ? '<div class="recommended-products-container local-cart-recommended-products"><div class="title">Additional products</div>' + additionalProducts.map(renderAdditionalProduct).join("") + '</div>' : '',
+      '</div>',
+      '<div class="cart-summary-container">',
+      '<cart-order-summary class="local-cart-order-summary">',
+      '<div class="local-cart-summary-card">',
+      '<div class="local-cart-summary-card__title">Order summary</div>',
+      '<div class="local-cart-summary-card__row"><span>Subtotal</span><span>' + escapeHtml(formatMoney(currency, subtotal)) + '</span></div>',
+      '<div class="local-cart-summary-card__row"><span>Discount</span><span>' + escapeHtml(formatMoney(currency, 0)) + '</span></div>',
+      '<div class="local-cart-summary-card__total"><span>Total</span><span>' + escapeHtml(formatMoney(currency, subtotal)) + '</span></div>',
+      '<label class="agreement-wrapper local-cart-agreement"><input type="checkbox"><span>I have read and agree to the ID Policy, Sharing of Data, and Terms and Conditions.</span></label>',
+      '<div class="ignite-dialog-buttons-container"><button class="mdc-button mat-mdc-button-base ignite-button mat-mdc-button mat-primary" type="button"><span class="mdc-button__label">Checkout</span></button></div>',
+      '</div>',
+      '</cart-order-summary>',
+      '</div>',
+      '</div>',
+    ].join("");
+
+    wrapper.querySelectorAll(".local-cart-product").forEach(function (row) {
+      var id = row.dataset.cartId;
+      var input = row.querySelector(".local-cart-product__quantity");
+      var remove = row.querySelector(".local-cart-product__remove");
+
+      input.addEventListener("change", function () {
+        var nextItems = readCart().map(function (item) {
+          if (item.id === id) {
+            item.quantity = normalizeQuantity(input.value, 1);
+          }
+
+          return item;
+        });
+
+        writeCart(nextItems);
+        setupCartPage();
+      });
+
+      remove.addEventListener("click", function () {
+        writeCart(readCart().filter(function (item) {
+          return item.id !== id;
+        }));
+        setupCartPage();
+      });
+    });
+
+    wrapper.querySelectorAll(".local-cart-additional-product").forEach(function (node, index) {
+      var button = node.querySelector("#add-button");
+      var product = additionalProducts[index];
+
+      if (!button || !product) {
+        return;
+      }
+
+      button.addEventListener("click", function (event) {
+        event.preventDefault();
+        addCartItem(productToCartItem(product));
+        playCartAddedAnimation();
+        setupCartPage();
+      });
+    });
   }
 
   async function apiJson(path) {
@@ -633,7 +1086,7 @@
     }
 
     if (shouldBlockForUser && !getStoredAuthToken()) {
-      window.location.href = "/login";
+      window.location.href = loginRedirectUrl;
       return Promise.resolve(null);
     }
 
@@ -643,7 +1096,7 @@
     }).then(function (response) {
       if (response.status === 401 && shouldBlockForUser) {
         clearStoredAuthToken();
-        window.location.href = "/login";
+        window.location.href = loginRedirectUrl;
         return null;
       }
 
@@ -673,7 +1126,7 @@
           headers: authHeaders(),
         }).finally(function () {
           clearStoredAuthToken();
-          window.location.href = "/login";
+          window.location.href = loginRedirectUrl;
         });
       });
     });
@@ -1282,6 +1735,334 @@
     activateTab(orderHistoryTab.getAttribute("aria-selected") === "true" ? "order-history" : "tests");
   }
 
+  function getLearnViewFromUrl() {
+    var params = new URL(window.location.href).searchParams;
+    var view = params.get("view") || "store";
+
+    if (view === "purchases") {
+      return "my-purchases";
+    }
+
+    return ["store", "my-purchases", "free-resources"].includes(view) ? view : "store";
+  }
+
+  function updateLearnUrl(view, journeyId, sectionId) {
+    var url = new URL(window.location.href);
+
+    if (view === "store") {
+      url.searchParams.delete("view");
+      url.searchParams.delete("journeyId");
+      url.searchParams.delete("section");
+    } else {
+      url.searchParams.set("view", view);
+    }
+
+    if (view === "free-resources") {
+      url.searchParams.set("journeyId", journeyId || "pte-academic");
+
+      if (sectionId) {
+        url.searchParams.set("section", sectionId);
+      } else {
+        url.searchParams.delete("section");
+      }
+    } else {
+      url.searchParams.delete("journeyId");
+      url.searchParams.delete("section");
+    }
+
+    window.history.replaceState({ localRoute: "/learn" }, "", url.pathname + url.search);
+  }
+
+  function renderResourceMeta(resource) {
+    return [resource.type, resource.time].filter(Boolean).map(function (value) {
+      return '<span class="local-free-resources__meta-pill">' + escapeHtml(value) + '</span>';
+    }).join("");
+  }
+
+  function renderFreeResourceCards(items) {
+    if (!items || !items.length) {
+      return '<div class="local-free-resources__empty">No resources are available for this section.</div>';
+    }
+
+    return [
+      '<div class="local-free-resources__cards">',
+      items.map(function (item) {
+        return [
+          '<article class="learn-free-product-card local-free-resources__card">',
+          item.thumbnail ? '<img class="local-free-resources__thumb" src="' + escapeHtml(item.thumbnail) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : '',
+          '<div class="local-free-resources__card-body">',
+          '<div class="local-free-resources__card-title">' + escapeHtml(item.title) + '</div>',
+          '<div class="local-free-resources__meta">' + renderResourceMeta(item) + '</div>',
+          item.text ? '<p class="local-free-resources__text">' + escapeHtml(item.text) + '</p>' : '',
+          item.url ? '<a class="ignite-link local-free-resources__link" href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener">Open resource</a>' : '',
+          '</div>',
+          '</article>',
+        ].join("");
+      }).join(""),
+      '</div>',
+    ].join("");
+  }
+
+  function renderStudyPlan(section) {
+    var plans = section.studyPlans || [];
+
+    if (!plans.length) {
+      return renderFreeResourceCards(section.items || []);
+    }
+
+    return [
+      '<div class="local-free-resources__plans">',
+      plans.map(function (plan) {
+        return [
+          '<section class="local-free-resources__plan">',
+          '<h3>' + escapeHtml(plan.title) + '</h3>',
+          '<div class="local-free-resources__plan-items">',
+          (plan.studyPlanItems || []).map(function (item) {
+            var actions = (item.actions || []).filter(function (action) {
+              return action.actionUrl;
+            });
+
+            return [
+              '<article class="local-free-resources__plan-item">',
+              '<div>',
+              '<div class="local-free-resources__card-title">' + escapeHtml(item.title) + '</div>',
+              item.description ? '<p class="local-free-resources__text">' + escapeHtml(item.description) + '</p>' : '',
+              '<div class="local-free-resources__meta">' + renderResourceMeta({ type: item.price && item.price !== "0" ? item.price : "Free", time: item.time }) + '</div>',
+              '</div>',
+              actions.length ? '<div class="local-free-resources__actions">' + actions.map(function (action) {
+                return '<a class="ignite-link local-free-resources__link" href="' + escapeHtml(action.actionUrl) + '" target="_blank" rel="noopener">' + escapeHtml(action.title || "Open resource") + '</a>';
+              }).join("") + '</div>' : '',
+              '</article>',
+            ].join("");
+          }).join(""),
+          '</div>',
+          '</section>',
+        ].join("");
+      }).join(""),
+      '</div>',
+    ].join("");
+  }
+
+  function renderFreeResources(resources, journeyId, sectionId) {
+    var body = document.querySelector("#mat-tab-group-0-content-2 .mat-mdc-tab-body-content");
+    var journey = resources.find(function (item) {
+      return item.journeyId === journeyId;
+    }) || resources[0];
+    var section = journey && (journey.sections || []).find(function (item) {
+      return item.sectionId === sectionId;
+    });
+
+    if (!body || !journey) {
+      return;
+    }
+
+    section = section || (journey.sections || [])[0];
+    body.innerHTML = [
+      '<div class="local-free-resources">',
+      '<div class="local-free-resources__heading">',
+      '<h1>Free resources</h1>',
+      '<p>' + escapeHtml(journey.description || "") + '</p>',
+      '</div>',
+      '<div class="local-free-resources__journeys" role="tablist" aria-label="Free resource journeys">',
+      resources.map(function (item) {
+        var active = item.journeyId === journey.journeyId;
+
+        return '<button class="local-free-resources__journey' + (active ? " is-active" : "") + '" type="button" role="tab" aria-selected="' + String(active) + '" data-journey-id="' + escapeHtml(item.journeyId) + '">' + escapeHtml(item.title) + '</button>';
+      }).join(""),
+      '</div>',
+      '<div class="local-free-resources__layout">',
+      '<div class="local-free-resources__sections" role="tablist" aria-label="' + escapeHtml(journey.title) + ' resource sections">',
+      (journey.sections || []).map(function (item) {
+        var active = section && item.sectionId === section.sectionId;
+
+        return '<button class="local-free-resources__section' + (active ? " is-active" : "") + '" type="button" role="tab" aria-selected="' + String(active) + '" data-section-id="' + escapeHtml(item.sectionId) + '">' + (item.iconPath ? '<img src="' + escapeHtml(item.iconPath) + '" alt="">' : '') + '<span>' + escapeHtml(item.menuTitle || item.title) + '</span></button>';
+      }).join(""),
+      '</div>',
+      '<section class="local-free-resources__panel" role="tabpanel">',
+      section ? '<h2>' + escapeHtml(section.title) + '</h2>' : '',
+      section && section.subTitle ? '<p class="local-free-resources__subtitle">' + escapeHtml(section.subTitle) + '</p>' : '',
+      section && section.studyPlans ? renderStudyPlan(section) : renderFreeResourceCards(section ? section.items : []),
+      '</section>',
+      '</div>',
+      '</div>',
+    ].join("");
+
+    body.querySelectorAll("[data-journey-id]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var nextJourney = resources.find(function (item) {
+          return item.journeyId === button.dataset.journeyId;
+        });
+        var nextSection = nextJourney && nextJourney.sections && nextJourney.sections[0];
+
+        updateLearnUrl("free-resources", button.dataset.journeyId, nextSection ? nextSection.sectionId : "");
+        renderFreeResources(resources, button.dataset.journeyId, nextSection ? nextSection.sectionId : "");
+      });
+    });
+
+    body.querySelectorAll("[data-section-id]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        updateLearnUrl("free-resources", journey.journeyId, button.dataset.sectionId);
+        renderFreeResources(resources, journey.journeyId, button.dataset.sectionId);
+      });
+    });
+  }
+
+  function activateLearnStoreExamTab(exam) {
+    var root = document.querySelector("test-taker-learn-shop-tabs");
+    var isCore = exam === "pte-core";
+    var academicTab;
+    var coreTab;
+    var academicBody;
+    var coreBody;
+    var coreContent;
+
+    if (!root) {
+      return;
+    }
+
+    academicTab = root.querySelector("#mat-tab-group-3-label-0");
+    coreTab = root.querySelector("#mat-tab-group-3-label-1");
+    academicBody = root.querySelector("#mat-tab-group-3-content-0");
+    coreBody = root.querySelector("#mat-tab-group-3-content-1");
+    coreContent = coreBody ? coreBody.querySelector(".mat-mdc-tab-body-content") : null;
+
+    if (!academicTab || !coreTab || !academicBody || !coreBody || !coreContent) {
+      return;
+    }
+
+    if (isCore && !coreContent.querySelector("learn-products-component")) {
+      coreContent.innerHTML = renderPteCoreShop();
+    }
+
+    setActivityTabLabel(academicTab, !isCore);
+    setActivityTabLabel(coreTab, isCore);
+    setActivityTabBody(academicBody, !isCore, "left");
+    setActivityTabBody(coreBody, isCore, "right");
+    setupLearnCartButtons();
+  }
+
+  function setupLearnStoreExamTabs() {
+    var root = document.querySelector("test-taker-learn-shop-tabs");
+    var academicTab;
+    var coreTab;
+
+    if (!root || root.dataset.localStoreExamTabsReady === "true") {
+      return;
+    }
+
+    academicTab = root.querySelector("#mat-tab-group-3-label-0");
+    coreTab = root.querySelector("#mat-tab-group-3-label-1");
+
+    if (!academicTab || !coreTab) {
+      return;
+    }
+
+    root.dataset.localStoreExamTabsReady = "true";
+    academicTab.addEventListener("click", function () {
+      activateLearnStoreExamTab("pte-academic");
+    });
+    coreTab.addEventListener("click", function () {
+      activateLearnStoreExamTab("pte-core");
+    });
+    [academicTab, coreTab].forEach(function (tab) {
+      tab.addEventListener("keydown", function (event) {
+        if (event.key !== "Enter" && event.key !== " ") {
+          return;
+        }
+
+        event.preventDefault();
+        tab.click();
+      });
+    });
+
+    activateLearnStoreExamTab(coreTab.getAttribute("aria-selected") === "true" ? "pte-core" : "pte-academic");
+  }
+
+  function activateLearnTab(view) {
+    var root = document.querySelector("test-taker-learn");
+    var config = {
+      store: { index: 0 },
+      "my-purchases": { index: 1 },
+      "free-resources": { index: 2 },
+    };
+
+    if (!root || !config[view]) {
+      return;
+    }
+
+    Object.keys(config).forEach(function (name) {
+      var index = config[name].index;
+      var active = name === view;
+
+      setActivityTabLabel(root.querySelector("#mat-tab-group-0-label-" + index), active);
+      setActivityTabBody(root.querySelector("#mat-tab-group-0-content-" + index), active, index < config[view].index ? "left" : "right");
+    });
+  }
+
+  async function setupLearnTabs() {
+    var root = document.querySelector("test-taker-learn");
+    var route = getRoute(new URL(window.location.href));
+    var params;
+    var view;
+
+    if (route !== "/learn" || !root) {
+      return;
+    }
+
+    params = new URL(window.location.href).searchParams;
+    view = getLearnViewFromUrl();
+
+    [
+      { tab: root.querySelector("#mat-tab-group-0-label-0"), view: "store" },
+      { tab: root.querySelector("#mat-tab-group-0-label-1"), view: "my-purchases" },
+      { tab: root.querySelector("#mat-tab-group-0-label-2"), view: "free-resources" },
+    ].forEach(function (item) {
+      if (!item.tab || item.tab.dataset.localLearnTabReady === "true") {
+        return;
+      }
+
+      item.tab.dataset.localLearnTabReady = "true";
+      item.tab.addEventListener("click", function () {
+        var nextJourney = item.view === "free-resources" ? (params.get("journeyId") || "pte-academic") : "";
+
+        activateLearnTab(item.view);
+        updateLearnUrl(item.view, nextJourney);
+
+        if (item.view === "free-resources") {
+          setupLearnTabs();
+        }
+      });
+      item.tab.addEventListener("keydown", function (event) {
+        if (event.key !== "Enter" && event.key !== " ") {
+          return;
+        }
+
+        event.preventDefault();
+        item.tab.click();
+      });
+    });
+
+    activateLearnTab(view);
+    setupLearnStoreExamTabs();
+
+    if (view !== "free-resources") {
+      return;
+    }
+
+    try {
+      var response = await fetch("/assets/learn/learn-resources.json", { credentials: "same-origin" });
+      var resources = await response.json();
+
+      renderFreeResources(resources, params.get("journeyId") || "pte-academic", params.get("section") || "");
+    } catch (error) {
+      var body = document.querySelector("#mat-tab-group-0-content-2 .mat-mdc-tab-body-content");
+
+      if (body) {
+        body.innerHTML = '<div class="local-free-resources"><div class="local-free-resources__empty">Free resources could not be loaded.</div></div>';
+      }
+    }
+  }
+
   function getScoreReportPath(trigger) {
     var explicitPath = trigger.dataset.scoreRoute || trigger.dataset.scoreHref;
     var scoreId = trigger.dataset.scoreId || trigger.dataset.testScoreId;
@@ -1436,7 +2217,7 @@
 
     try {
       if (isProtectedRoute(route) && !getStoredAuthToken()) {
-        window.location.href = "/login";
+        window.location.href = loginRedirectUrl;
         return;
       }
 
@@ -1687,6 +2468,10 @@
     setupAccountProfilePanels();
     setupAccountForms();
     setupScoreReportBackButtons();
+    await setupLearnTabs();
+    setupLearnCartButtons();
+    await setupCartPage();
+    updateCartBadge();
     syncRouteSpecificState();
     document.querySelectorAll(".menu-buttons-container").forEach(setupMenuStrike);
   }

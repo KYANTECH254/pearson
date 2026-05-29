@@ -217,14 +217,14 @@
 
   request("/api/auth/me").then(function (data) {
     if (!data.user || data.user.role !== "ADMIN") {
-      window.location.href = "/login";
+      window.location.href = "https://id.mypte.pearsonpte.com/Account/Login";
       return;
     }
 
     return Promise.all([loadUsers(), loadTests()]);
   }).catch(function () {
     clearStoredAuthToken();
-    window.location.href = "/login";
+    window.location.href = "https://id.mypte.pearsonpte.com/Account/Login";
   });
 
   form.addEventListener("submit", async function (event) {
@@ -313,6 +313,6 @@
   document.getElementById("logoutButton").addEventListener("click", async function () {
     await request("/api/auth/logout", { method: "POST" }).catch(function () {});
     clearStoredAuthToken();
-    window.location.href = "/login";
+    window.location.href = "https://id.mypte.pearsonpte.com/Account/Login";
   });
 })();

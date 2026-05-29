@@ -174,7 +174,7 @@
                                                 type="submit" id="btnLogIn" name="btnLogIn">
                                                 <span class="mdc-button__label">Log in</span>
                                             </button>
-                                            <div id="loginMessage" style="color:#b00020;min-height:22px;margin-top:12px;"></div>
+                                            <div id="loginMessage" class="validation-errors" style="display:none;min-height:22px;margin-top:12px;"></div>
                                             <div class="ignite-log-in-secondary-actions-row">
                                                 <div class="mdc-form-field">
                                                     <div class="mdc-checkbox">
@@ -272,7 +272,7 @@
                 document.body.appendChild(loader);
             }
 
-            message.text("");
+            message.text("").hide();
             button.prop("disabled", true).css("opacity", .55);
             loader.classList.add("visible");
 
@@ -291,13 +291,45 @@
                     }
 
                     if (data.token) {
-                        localStorage.setItem("pearson_session_token", data.token);
+                        try { localStorage.setItem("pearson_session_token", data.token); } catch (e) {}
                     }
 
-                    window.location.href = data.user && data.user.role === "ADMIN" ? "/admin" : "/users/edit-user-account/collapse";
+                    // Determine dashboard origin dynamically based on current location
+                    var dashboardOrigin = "https://mypte.pearsonpte.com";
+                    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+                        // For local testing, use same origin
+                        dashboardOrigin = window.location.origin;
+                    } else if (window.location.hostname.startsWith("id.")) {
+                        // If on id.mypte.pearsonpte.com, redirect to mypte.pearsonpte.com
+                        dashboardOrigin = window.location.protocol + "//" + window.location.hostname.replace(/^id\./, "");
+                    }
+                    
+                    var returnUrl = new URLSearchParams(window.location.search).get("returnUrl");
+                    var targetUrl = data.user && data.user.role === "ADMIN" ? dashboardOrigin + "/admin" : dashboardOrigin + "/";
+
+                    if (returnUrl) {
+                        try {
+                            var parsedReturnUrl = new URL(returnUrl);
+
+                            if (parsedReturnUrl.origin === dashboardOrigin) {
+                                targetUrl = parsedReturnUrl.href;
+                            }
+                        } catch (error) {}
+                    }
+
+                    if (data.token) {
+                        // Redirect to the dashboard and include the token in the URL so
+                        // the dashboard origin can persist it to its own localStorage.
+                        var redirectUrl = new URL(dashboardOrigin + "/");
+                        redirectUrl.searchParams.set("token", data.token);
+                        if (targetUrl) redirectUrl.searchParams.set("returnUrl", targetUrl);
+                        window.location.href = redirectUrl.href;
+                    } else {
+                        window.location.href = targetUrl;
+                    }
                 });
             }).catch(function (error) {
-                message.text(error.message);
+                message.text(error.message).show();
                 button.prop("disabled", false).css("opacity", 1);
                 loader.classList.remove("visible");
             });

@@ -28,11 +28,11 @@ const replacements = [
   ],
   [
     /(<a\b(?=[^>]*id="menu_item_faq")(?=[^>]*class="[^"]*\bignite-menu-button\b)[^>]*)(>)/g,
-    ensureHref("/help"),
+    ensureHref("https://www.pearsonpte.com/help-center/"),
   ],
   [
     /(<div\b[^>]*id="shoppingcart-icon"[^>]*)(>)/g,
-    ensureAttributes('role="link" tabindex="0" onclick="return window.localNavigate(\'/cart\')"'),
+    ensureAttributes('role="link" tabindex="0" onclick="return window.localNavigate(\'/orders/shoppingcart\')"'),
   ],
   [
     /(<div\b[^>]*id="users\/edit-user-account\/collapse-profile-item"[^>]*)(>)/g,
@@ -40,7 +40,7 @@ const replacements = [
   ],
   [
     /(<div\b[^>]*id="logout-profile-item"[^>]*)(>)/g,
-    ensureAttributes('role="link" tabindex="0" onclick="return window.localNavigate(\'/login\')"'),
+    ensureAttributes('role="link" tabindex="0" onclick="location.href=\'https://id.mypte.pearsonpte.com/Account/Login\';return false"'),
   ],
   [
     /(<a\b[^>]*id="link_view_score"[^>]*)(>)/g,
