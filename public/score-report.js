@@ -252,36 +252,37 @@
 
     // Info icons dialogs
     setupInfoDialogs();
-    // Run again after a short delay to ensure everything is rendered
-    setTimeout(setupInfoDialogs, 1000);
-    setTimeout(setupInfoDialogs, 3000);
+    // Run periodically to catch any dynamic rendering
+    var setupInterval = setInterval(setupInfoDialogs, 500);
+    setTimeout(function() { clearInterval(setupInterval); }, 10000);
   }
 
   function setupInfoDialogs() {
-    var icons = document.querySelectorAll(".adjust-right mat-icon");
+    var icons = document.querySelectorAll(".adjust-right mat-icon, mat-icon");
+
     icons.forEach(function (icon) {
-      if (icon.dataset.dialogReady) return;
+      if (icon.textContent.trim() !== "info_outline") return;
+      if (icon.dataset.dialogReady === "true") return;
+
       icon.dataset.dialogReady = "true";
       icon.style.cursor = "pointer";
+      icon.style.display = "inline-block";
+      icon.style.visibility = "visible";
+      icon.style.opacity = "1";
 
       icon.onclick = function (e) {
+        e.preventDefault();
         e.stopPropagation();
         var container = icon.closest(".score-overview-cont, .communication-skils-cont, .further-info-cont, .applicant-info-cont");
-        var title = "";
-        var content = "";
+        var title = "Communicative skills";
+        var content = "Scores for communicative skills (listening, reading, speaking and writing) are based on all test questions that assess these skills, either as a single skill or together with other skills. <a class=\"hand-cursor\"> More information. </a>";
 
         if (container && container.classList.contains("score-overview-cont")) {
           title = "Overall score";
           content = "The overall score reflects the candidate's English language ability. The score is based on performance on all questions in the test. The range for the overall score is 10-90 points on Pearson's Global Scale of English (GSE). <a class=\"hand-cursor\"> More information. </a>";
-        } else {
-          // Default to Communicative skills for other sections as requested
-          title = "Communicative skills";
-          content = "Scores for communicative skills (listening, reading, speaking and writing) are based on all test questions that assess these skills, either as a single skill or together with other skills. <a class=\"hand-cursor\"> More information. </a>";
         }
 
-        if (title) {
-          showDialog(title, content);
-        }
+        showDialog(title, content);
       };
     });
   }

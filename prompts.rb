@@ -30,6 +30,20 @@ the header you created for the pdf to be generated is not same as what i request
 
 
 
+this is not working 2.
+                    Share Results Redirection:
+                    ◦
+                    Confirmed that the "Share results" button (#ignite-action-card-action-button) correctly redirects to the official Pearson VUE Additional Score Reports URL: https://wsr.pearsonvue.com/testtaker/asr/AdditionalScoreReports/PEARSONLANGUAGE?_gl=&conversationId=163654.
+                    ◦
+                    The click handler in public/score-report.js now uses e.preventDefault() to ensure the redirection happens reliably.
 
 
 
+1.
+View as PDF Button:
+◦
+Modified public/local-header.js to prevent the button text from changing to "Preparing PDF..." when clicked.
+◦
+Ensured the original button text ("VIEW AS PDF") is retained during the entire generation process.
+◦
+Updated the logic so that local-header.js yields to score-report.js for buttons with the ID btn_view_pdf, preventing duplicate requests. is not downloading pdf
