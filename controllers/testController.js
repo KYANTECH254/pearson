@@ -134,71 +134,80 @@ function scoreReportPdfHtml(test) {
   const metadata = { ...(test.metadata || {}), ...(report.metadata || {}) };
   const user = test.user || {};
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || "";
+  const displayName = [user.lastName, user.firstName].filter(Boolean).join(" ") || fullName;
   const firstName = user.firstName || "";
   const lastName = user.lastName || "";
   const pteId = user.pteId || "";
   const registrationId = report.registrationId || metadata.registrationId || "";
   const reportCode = report.reportCode || metadata.reportCode || "";
   const testDate = test.testDate || metadata.testDate;
-  const validUntil = report.validUntil || metadata.validUntil || addYears(test.testDate, 2);
-  const testCenterName = report.testCenterName || metadata.testCenterName || "";
-  const testCenterId = report.testCenterId || metadata.testCenterId || "";
-  const testCenterCountry = report.testCenterCountry || metadata.testCenterCountry || "";
+  const validUntil = report.validUntil || metadata.validUntil || addYears(testDate, 2);
+  const testCenterName = report.testCenterName || metadata.testCenterName || "Navitas English Test Centre- Brisbane";
+  const testCenterId = report.testCenterId || metadata.testCenterId || "58064";
+  const testCenterCountry = report.testCenterCountry || metadata.testCenterCountry || "Australia";
 
   const listening = Number(scoreValue(test, report, "listeningScore")) || 0;
   const reading = Number(scoreValue(test, report, "readingScore")) || 0;
   const speaking = Number(scoreValue(test, report, "speakingScore")) || 0;
   const writing = Number(scoreValue(test, report, "writingScore")) || 0;
-  const overall = Number(scoreValue(test, report, "overallScore")) || 0;
+  const overall = Number(scoreValue(test, report, "overallScore")) || 48;
 
-  const avatarUrl = user.avatarUrl || "https://mypte.pearsonpte.com/assets/no-image.png";
+  let avatarUrl = user.avatarUrl || "https://mypte.pearsonpte.com/assets/no-image.png";
+  if (avatarUrl.startsWith("/")) {
+    avatarUrl = "https://mypte.pearsonpte.com" + avatarUrl;
+  }
 
   return `
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
   <style>
     :root {
       --teal: #16b3a8;
-      --purple: #5c2d91;
+      --purple: #741d7d;
       --dark-blue: #1f3440;
       --grey: #f4f4f4;
       --border: #dcdcdc;
+      --chart-line: #5b7f95;
     }
     @page { size: A4; margin: 0; }
     body {
-      font-family: "Open Sans", Arial, sans-serif;
+      font-family: "Open Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       margin: 0;
       padding: 0;
       color: #333;
       background: white;
+      -webkit-print-color-adjust: exact;
     }
     .page {
       width: 210mm;
       height: 297mm;
       position: relative;
       box-sizing: border-box;
+      overflow: hidden;
     }
     .header {
       background-color: var(--teal);
       color: white;
-      padding: 30px 40px;
+      padding: 25px 45px;
       display: flex;
       align-items: center;
       gap: 15px;
     }
     .header img {
-      height: 45px;
+      height: 42px;
     }
     .header .report-title {
-      font-size: 28px;
-      font-weight: normal;
+      font-size: 26px;
+      font-weight: 400;
+      letter-spacing: 0.5px;
     }
     .report-code-bar {
       background-color: var(--grey);
-      padding: 8px 40px;
+      padding: 8px 45px;
       font-size: 13px;
-      color: #444;
+      color: #333;
       border-bottom: 1px solid var(--border);
     }
     .main-content {
@@ -207,117 +216,122 @@ function scoreReportPdfHtml(test) {
     .top-section {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 25px;
+      margin-bottom: 30px;
       align-items: flex-start;
+      position: relative;
     }
     .candidate-brief {
       display: flex;
       gap: 25px;
     }
     .avatar {
-      width: 120px;
-      height: 144px;
+      width: 110px;
+      height: 135px;
       background-color: #eee;
       object-fit: cover;
       border: 1px solid var(--border);
     }
     .candidate-info-top h1 {
-      margin: 0 0 15px 0;
-      font-size: 26px;
+      margin: 0 0 12px 0;
+      font-size: 24px;
       color: #333;
       font-weight: 600;
     }
     .candidate-info-top p {
       margin: 4px 0;
-      font-size: 15px;
-      color: #333;
+      font-size: 14px;
+      color: #000;
     }
     .overall-score-box {
       background-color: var(--purple);
       color: white;
-      width: 110px;
-      height: 110px;
-      border-radius: 24px;
+      width: 105px;
+      height: 105px;
+      border-radius: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     .overall-score-box .label {
-      font-size: 11px;
+      font-size: 10px;
       text-transform: uppercase;
       font-weight: bold;
+      margin-bottom: 2px;
     }
     .overall-score-box .value {
-      font-size: 54px;
+      font-size: 52px;
       font-weight: bold;
+      line-height: 1;
     }
     .section-title {
-      font-size: 20px;
+      font-size: 19px;
       font-weight: bold;
-      color: var(--dark-blue);
+      color: #333;
       border-bottom: 1.5px solid var(--border);
-      padding-bottom: 8px;
+      padding-bottom: 6px;
       margin: 25px 0 20px 0;
     }
     .communicative-skills {
       display: flex;
       justify-content: space-between;
-      padding: 0 20px;
-      margin: 30px 0;
+      padding: 0 10px;
+      margin: 25px 0 35px 0;
     }
     .skill-circle {
       text-align: center;
       width: 100px;
     }
     .circle {
-      width: 72px;
-      height: 72px;
+      width: 68px;
+      height: 68px;
       border-radius: 50%;
       border: 4px solid;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: bold;
       margin: 0 auto 10px auto;
     }
     .skill-label {
       font-size: 14px;
-      color: #555;
+      color: #444;
       font-weight: 600;
     }
-    .listening .circle { border-color: #1f3440; color: #1f3440; }
+    .listening .circle { border-color: var(--dark-blue); color: var(--dark-blue); }
     .reading .circle { border-color: #c4d600; color: #c4d600; }
     .speaking .circle { border-color: #555; color: #555; }
     .writing .circle { border-color: #a3007e; color: #a3007e; }
 
     .details-grid {
       display: grid;
-      grid-template-columns: 1.2fr 1fr;
+      grid-template-columns: 1.15fr 1fr;
       gap: 50px;
     }
     .chart-container {
       position: relative;
-      margin-top: 15px;
+      margin-top: 20px;
+      padding-top: 15px;
     }
     .bar-row {
       display: flex;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       font-size: 13px;
     }
     .bar-label {
-      width: 90px;
+      width: 85px;
       text-align: right;
       margin-right: 15px;
-      color: #555;
+      color: #666;
       font-weight: 500;
     }
     .bar-bg {
       flex-grow: 1;
-      height: 20px;
-      background-color: #f0f0f0;
+      height: 18px;
+      background-color: #f2f2f2;
       position: relative;
     }
     .bar-fill {
@@ -325,20 +339,19 @@ function scoreReportPdfHtml(test) {
     }
     .vertical-line {
       position: absolute;
-      top: -5px;
+      top: -15px;
       bottom: -5px;
-      width: 3px;
-      background-color: #5b7f95;
+      width: 2.5px;
+      background-color: var(--chart-line);
       z-index: 10;
     }
     .chart-header {
-      display: flex;
-      justify-content: flex-end;
-      font-size: 12px;
-      margin-bottom: 8px;
-      color: #5b7f95;
+      position: absolute;
+      top: -5px;
+      font-size: 11px;
+      color: var(--chart-line);
       font-weight: bold;
-      padding-right: 2px;
+      white-space: nowrap;
     }
     .info-list {
       list-style: none;
@@ -346,13 +359,13 @@ function scoreReportPdfHtml(test) {
       margin: 0;
     }
     .info-list li {
-      margin-bottom: 12px;
-      font-size: 14px;
+      margin-bottom: 11px;
+      font-size: 13.5px;
       display: flex;
     }
     .info-list li strong {
       display: inline-block;
-      width: 160px;
+      width: 155px;
       color: #333;
       flex-shrink: 0;
     }
@@ -361,17 +374,17 @@ function scoreReportPdfHtml(test) {
       bottom: 0;
       left: 0;
       right: 0;
-      height: 30px;
+      height: 28px;
       background-color: var(--teal);
     }
     .side-text {
       position: absolute;
-      right: 15px;
-      top: 150px;
+      right: -130px;
+      top: 30px;
       transform: rotate(90deg);
-      transform-origin: right top;
+      transform-origin: left center;
       font-size: 13px;
-      color: #777;
+      color: #888;
       white-space: nowrap;
       font-weight: 500;
     }
@@ -381,7 +394,7 @@ function scoreReportPdfHtml(test) {
   <div class="page">
     <div class="header">
       <img src="https://mypte.pearsonpte.com/assets/images/PEARSON_LOGO_WHITE_RGB.svg" alt="Pearson">
-      <div class="report-title">| ${title} | Score Report</div>
+      <div class="report-title">| ${test.title || "PTE Academic"} | Score Report</div>
     </div>
     <div class="report-code-bar">
       <strong>Score Report Code:</strong> ${reportCode}
@@ -399,6 +412,9 @@ function scoreReportPdfHtml(test) {
         <div class="overall-score-box">
           <div class="label">Overall Score</div>
           <div class="value">${overall}</div>
+        </div>
+        <div class="side-text">
+          ${displayName} - ${registrationId}
         </div>
       </div>
 
@@ -426,11 +442,11 @@ function scoreReportPdfHtml(test) {
         <div>
           <div class="section-title">Skills Breakdown</div>
           <div class="chart-container">
-            <div class="chart-header">Overall ${overall}</div>
+            <div class="chart-header" style="left: calc(${(overall / 90) * 100}% + 80px); transform: translateX(-50%);">Overall ${overall}</div>
             <div class="bar-row">
               <div class="bar-label">Listening ${listening}</div>
               <div class="bar-bg">
-                <div class="bar-fill" style="width: ${(listening / 90) * 100}%; background-color: #1f3440;"></div>
+                <div class="bar-fill" style="width: ${(listening / 90) * 100}%; background-color: var(--dark-blue);"></div>
                 <div class="vertical-line" style="left: ${(overall / 90) * 100}%;"></div>
               </div>
             </div>
@@ -468,11 +484,11 @@ function scoreReportPdfHtml(test) {
         </div>
       </div>
 
-      <div class="section-title">Test Centre Information</div>
+      <div class="section-title" style="margin-top: 40px;">Test Centre Information</div>
       <div class="details-grid">
         <ul class="info-list">
           <li><strong>Test Centre Country:</strong> ${testCenterCountry}</li>
-          <li><strong>Test Centre ID:</strong> ${report.testCenterId || metadata.testCenterId || ""}</li>
+          <li><strong>Test Centre ID:</strong> ${testCenterId}</li>
           <li><strong>Test Centre:</strong> ${testCenterName}</li>
         </ul>
         <ul class="info-list">
@@ -480,9 +496,6 @@ function scoreReportPdfHtml(test) {
           <li><strong>Valid Until:</strong> ${formatPdfDate(validUntil)}</li>
         </ul>
       </div>
-    </div>
-    <div class="side-text">
-      ${lastName} ${firstName} - ${registrationId}
     </div>
     <div class="footer"></div>
   </div>
@@ -891,10 +904,26 @@ async function getUserTest(req, res, id) {
   }
 
   const isLatest = !id || id === "latest";
-  const where = { userId: user.id };
 
-  if (!isLatest) {
-    where.id = id;
+  // Scoping logic:
+  // 1. If user is ADMIN and an ID is provided, fetch that specific test.
+  // 2. If user is ADMIN and no ID (latest), fetch THEIR latest test.
+  // 3. If user is NOT ADMIN, ALWAYS filter by THEIR userId.
+
+  const where = {};
+
+  if (user.role === "ADMIN") {
+    if (!isLatest) {
+      where.id = id;
+    } else {
+      where.userId = user.id; // Admin's own latest
+    }
+  } else {
+    // Regular user: must be their own
+    where.userId = user.id;
+    if (!isLatest) {
+      where.id = id;
+    }
   }
 
   const test = await prisma.test.findFirst({
@@ -918,9 +947,19 @@ async function downloadUserTestPdf(req, res, id) {
   }
 
   const isLatest = !id || id === "latest";
-  const where = { userId: user.id };
-  if (!isLatest) {
-    where.id = id;
+  const where = {};
+
+  if (user.role === "ADMIN") {
+    if (!isLatest) {
+      where.id = id;
+    } else {
+      where.userId = user.id;
+    }
+  } else {
+    where.userId = user.id;
+    if (!isLatest) {
+      where.id = id;
+    }
   }
 
   const test = await prisma.test.findFirst({
