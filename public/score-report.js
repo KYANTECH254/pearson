@@ -1,4 +1,8 @@
 (function () {
+  if (window.__localHeaderOwnsScoreReport) {
+    return;
+  }
+
   function getStoredAuthToken() {
     try {
       return window.localStorage.getItem("pearson_session_token") || "";

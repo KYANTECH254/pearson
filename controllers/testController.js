@@ -1,5 +1,6 @@
 const prisma = require("../lib/prisma");
 const crypto = require("crypto");
+const fs = require("fs");
 const { parseJsonBody, sendJson } = require("../lib/http");
 const { requireUser, requireAdmin } = require("./userController");
 const { publicUser } = require("./authController");
@@ -59,6 +60,176 @@ function randomReportCode() {
 
 function randomHexId(length = 24) {
   return crypto.randomBytes(Math.ceil(length / 2)).toString("hex").slice(0, length);
+}
+
+function chromiumExecutablePath() {
+  return [process.env.PUPPETEER_EXECUTABLE_PATH, "/usr/bin/chromium", "/usr/bin/google-chrome"].find((file) => file && fs.existsSync(file));
+}
+
+function pdfFilename(test) {
+  const user = test.user || {};
+  const report = test.scoreReport || {};
+  const name = [user.firstName, user.lastName].filter(Boolean).join("_") || user.username || "score-report";
+  const registrationId = report.registrationId || test.id;
+
+  return `${name}_${registrationId}.pdf`.replace(/[^\w.-]+/g, "_");
+}
+
+function escapeHtml(value) {
+  return String(value == null ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatPdfDate(value) {
+  const date = value ? new Date(value) : null;
+
+  if (!date || Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function formatGender(value) {
+  const normalized = String(value || "").toLowerCase();
+
+  if (normalized === "m" || normalized === "male") return "Male";
+  if (normalized === "f" || normalized === "female") return "Female";
+  if (normalized) return "X/Other";
+  return "";
+}
+
+function addYears(dateValue, years) {
+  const date = dateValue ? new Date(dateValue) : null;
+
+  if (!date || Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  date.setFullYear(date.getFullYear() + years);
+  return date;
+}
+
+function scoreValue(test, report, key) {
+  const value = key === "overallScore" && report[key] == null ? test.score : report[key];
+
+  return value == null || value === "" ? "" : String(Math.round(Number(value)));
+}
+
+function scoreReportPdfHtml(test) {
+  const report = test.scoreReport || {};
+  const metadata = { ...(test.metadata || {}), ...(report.metadata || {}) };
+  const user = test.user || {};
+  const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || "";
+  const displayName = [user.lastName, user.firstName].filter(Boolean).join(" ") || fullName;
+  const registrationId = report.registrationId || metadata.registrationId || "";
+  const reportCode = report.reportCode || metadata.reportCode || "";
+  const validUntil = report.validUntil || metadata.validUntil || addYears(test.testDate, 2);
+  const testCenterName = report.testCenterName || metadata.testCenterName || "";
+  const testCenterCountry = report.testCenterCountry || metadata.testCenterCountry || "";
+  const scores = {
+    Listening: scoreValue(test, report, "listeningScore"),
+    Reading: scoreValue(test, report, "readingScore"),
+    Speaking: scoreValue(test, report, "speakingScore"),
+    Writing: scoreValue(test, report, "writingScore"),
+  };
+  const overall = scoreValue(test, report, "overallScore");
+  const skillRows = Object.entries(scores).map(([name, value]) => `
+    <div class="skill-row">
+      <div class="skill-name">${escapeHtml(name)}</div>
+      <div class="skill-track"><span style="width:${Number(value) || 0}%"></span></div>
+      <div class="skill-score">${escapeHtml(value)}</div>
+    </div>
+  `).join("");
+
+  return `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #fff; color: #242424; font-family: Arial, Helvetica, sans-serif; }
+    .page { width: 210mm; min-height: 297mm; padding: 14mm 16mm 12mm; }
+    .top-band { background: #16b3a8; color: #1f3440; padding: 12mm 10mm 8mm; }
+    .title { font-size: 31px; font-weight: 700; letter-spacing: .1px; }
+    .code { font-size: 13px; margin-top: 7px; }
+    .intro { display: grid; grid-template-columns: 1fr 78px; gap: 18px; align-items: start; margin: 15mm 0 9mm; }
+    .name { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .meta { font-size: 12px; line-height: 1.8; }
+    .overall { width: 74px; height: 74px; border-radius: 50%; border: 7px solid #16b3a8; display: grid; place-items: center; font-size: 30px; font-weight: 700; color: #333; }
+    .subtitle { color: #5c2d91; font-size: 18px; font-weight: 700; margin: 7mm 0 5mm; }
+    .skills-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8mm; }
+    .skill-card { border: 1px solid #dedede; min-height: 58px; padding: 8px; text-align: center; }
+    .skill-card strong { display: block; font-size: 23px; color: #333; }
+    .skill-card span { color: #5c2d91; font-size: 12px; font-weight: 700; }
+    .breakdown { border-top: 1px solid #d8d8d8; padding-top: 5mm; }
+    .skill-row { display: grid; grid-template-columns: 82px 1fr 34px; gap: 10px; align-items: center; margin: 9px 0; font-size: 12px; }
+    .skill-track { height: 8px; background: #e8e8e8; position: relative; }
+    .skill-track span { background: #16b3a8; display: block; height: 8px; }
+    .skill-score { font-weight: 700; text-align: right; }
+    .overall-line { display: flex; justify-content: flex-end; align-items: baseline; gap: 8px; color: #5c2d91; font-weight: 700; margin: 5mm 0 8mm; }
+    .overall-line strong { color: #333; font-size: 26px; }
+    .info { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; border-top: 1px solid #d8d8d8; padding-top: 7mm; }
+    .info h2 { color: #5c2d91; font-size: 16px; margin: 0 0 4mm; }
+    .info-row { display: grid; grid-template-columns: 42mm 1fr; gap: 5px; font-size: 11.5px; line-height: 1.55; margin-bottom: 4px; }
+    .label { font-weight: 700; }
+    .footer { color: #666; font-size: 9px; margin-top: 11mm; border-top: 1px solid #e0e0e0; padding-top: 4mm; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="top-band">
+      <div class="title">${escapeHtml(test.title || "PTE Academic")} | Score Report</div>
+      <div class="code"><strong>Score Report Code:</strong> ${escapeHtml(reportCode)}</div>
+    </section>
+
+    <section class="intro">
+      <div>
+        <div class="name">${escapeHtml(fullName)}</div>
+        <div class="meta"><strong>Test Taker ID:</strong> ${escapeHtml(user.pteId || "")}</div>
+        <div class="meta"><strong>Registration ID:</strong> ${escapeHtml(registrationId)}</div>
+        <div class="meta">${escapeHtml(displayName)}${registrationId ? " - " + escapeHtml(registrationId) : ""}</div>
+      </div>
+      <div class="overall">${escapeHtml(overall)}</div>
+    </section>
+
+    <div class="subtitle">Communicative Skills</div>
+    <section class="skills-grid">
+      ${Object.entries(scores).map(([name, value]) => `<div class="skill-card"><strong>${escapeHtml(value)}</strong><span>${escapeHtml(name)}</span></div>`).join("")}
+    </section>
+
+    <section class="breakdown">
+      <div class="subtitle">Skills Breakdown</div>
+      ${skillRows}
+      <div class="overall-line"><strong>${escapeHtml(overall)}</strong><span>Overall</span></div>
+    </section>
+
+    <section class="info">
+      <div>
+        <h2>Candidate Information</h2>
+        <div class="info-row"><div class="label">Date of Birth:</div><div>${escapeHtml(formatPdfDate(user.dateOfBirth))}</div></div>
+        <div class="info-row"><div class="label">Gender:</div><div>${escapeHtml(formatGender(user.gender))}</div></div>
+        <div class="info-row"><div class="label">Country of Citizenship:</div><div>${escapeHtml(user.countryOfCitizenship || "")}</div></div>
+        <div class="info-row"><div class="label">Country of Residence:</div><div>${escapeHtml(user.countryOfResidence || "")}</div></div>
+      </div>
+      <div>
+        <h2>Test Centre Information</h2>
+        <div class="info-row"><div class="label">Test Centre Country:</div><div>${escapeHtml(testCenterCountry)}</div></div>
+        <div class="info-row"><div class="label">Test Centre ID:</div><div>${escapeHtml(report.testCenterId || metadata.testCenterId || "")}</div></div>
+        <div class="info-row"><div class="label">Test Centre:</div><div>${escapeHtml(testCenterName)}</div></div>
+        <div class="info-row"><div class="label">Test Date:</div><div>${escapeHtml(formatPdfDate(test.testDate))}</div></div>
+        <div class="info-row"><div class="label">Valid Until:</div><div>${escapeHtml(formatPdfDate(validUntil))}</div></div>
+      </div>
+    </section>
+    <div class="footer">Pearson Test of English score report generated from myPTE.</div>
+  </main>
+</body>
+</html>`;
 }
 
 function scoreReportData(body, test) {
@@ -481,6 +652,51 @@ async function getUserTest(req, res, id) {
   sendJson(res, 200, { test: { ...test, user: publicUser(test.user) } });
 }
 
+async function downloadUserTestPdf(req, res, id) {
+  const user = await requireUser(req, res);
+  if (!user) {
+    return;
+  }
+
+  const test = await prisma.test.findFirst({
+    where: { id, userId: user.id },
+    include: { user: true, scoreReport: true },
+  });
+
+  if (!test) {
+    sendJson(res, 404, { error: "Test not found." });
+    return;
+  }
+
+  const puppeteer = require("puppeteer");
+  const browser = await puppeteer.launch({
+    executablePath: chromiumExecutablePath(),
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+
+  try {
+    const page = await browser.newPage();
+    await page.setContent(scoreReportPdfHtml(test), { waitUntil: "networkidle0" });
+
+    const pdf = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      preferCSSPageSize: true,
+    });
+
+    res.writeHead(200, {
+      "Cache-Control": "no-store",
+      "Content-Disposition": `attachment; filename="${pdfFilename(test)}"`,
+      "Content-Length": pdf.length,
+      "Content-Type": "application/pdf",
+    });
+    res.end(pdf);
+  } finally {
+    await browser.close();
+  }
+}
+
 module.exports = {
   listUserTests,
   createUserTest,
@@ -489,5 +705,6 @@ module.exports = {
   updateAdminTest,
   deleteAdminTest,
   getUserTest,
+  downloadUserTestPdf,
   ensureScoreReportStore,
 };

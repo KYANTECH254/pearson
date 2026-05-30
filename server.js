@@ -25,7 +25,7 @@ loadEnv();
 const prisma = require("./lib/prisma");
 const { login, logout, me, register, ensureDefaultAdmin, ensureSessionStore, currentUser, publicUser, clearSessionCookieHeaders, hostSessionCookieHeader, sessionCookieHeader, userFromSessionToken } = require("./controllers/authController");
 const { createUser, deleteAdminUser, listUsers, updateAdminUser, updateProfile, updatePassword, updatePrivacy } = require("./controllers/userController");
-const { listUserTests, createUserTest, listAllTests, createAdminTest, updateAdminTest, deleteAdminTest, getUserTest, ensureScoreReportStore } = require("./controllers/testController");
+const { listUserTests, createUserTest, listAllTests, createAdminTest, updateAdminTest, deleteAdminTest, getUserTest, downloadUserTestPdf, ensureScoreReportStore } = require("./controllers/testController");
 const { getProducts, createProduct, updateProduct, deleteProduct } = require("./controllers/productController");
 const { databaseTarget, isDatabaseConnectionError } = require("./lib/databaseErrors");
 const { sendJson } = require("./lib/http");
@@ -189,6 +189,12 @@ async function handleApiRequest(req, res, pathname) {
 
     if (pathname === "/api/user/tests" && req.method === "GET") {
       await listUserTests(req, res);
+      return true;
+    }
+
+    if (pathname.startsWith("/api/user/tests/") && pathname.endsWith("/pdf") && req.method === "GET") {
+      const id = pathname.split("/").slice(-2, -1)[0];
+      await downloadUserTestPdf(req, res, id);
       return true;
     }
 

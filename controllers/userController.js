@@ -174,6 +174,7 @@ async function updateProfile(req, res) {
   const body = await parseJsonBody(req);
   const data = optionalProfileData(body);
 
+  if (body.username !== undefined) data.username = String(body.username || "").trim();
   if (body.firstName !== undefined) data.firstName = String(body.firstName || "").trim();
   if (body.lastName !== undefined) data.lastName = String(body.lastName || "").trim();
   if (body.email !== undefined) data.email = String(body.email || "").trim().toLowerCase();

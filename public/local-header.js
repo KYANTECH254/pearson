@@ -47,6 +47,9 @@
   var preloaderVisibleFrom = 0;
   var authStorageKey = "pearson_session_token";
   var cartStorageKey = "pearson_cart_items";
+  var ownsScoreReport = /^\/my-activity\/test-score\/[^/]+$/.test(window.location.pathname.replace(/\/+$/, "") || "/");
+
+  window.__localHeaderOwnsScoreReport = ownsScoreReport;
 
   function closeAll(exceptMenu) {
     document.querySelectorAll("ignite-profile-menu").forEach(function (menu) {
@@ -260,9 +263,20 @@
         button.dataset.accountPanelCancelReady = "true";
         button.addEventListener("click", function (event) {
           event.preventDefault();
+          if (isAccountPanelDirty(panel)) {
+            showDiscardChangesDialog(function () {
+              restoreAccountPanel(panel);
+              markAccountPanelClean(panel);
+              setPanelOpen(panel, false);
+            });
+            return;
+          }
+
           setPanelOpen(panel, false);
         });
       });
+
+      markAccountPanelClean(panel);
     });
   }
 
@@ -294,6 +308,109 @@
     if (text) {
         message.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+  }
+
+  function serializeAccountPanel(panel) {
+    if (!panel) {
+      return "";
+    }
+
+    return JSON.stringify(Array.from(panel.querySelectorAll("input, textarea, select, mat-select, [role='switch']")).map(function (control, index) {
+      var key = control.id || control.getAttribute("name") || control.getAttribute("formcontrolname") || control.getAttribute("aria-label") || String(index);
+      var value = control.value || "";
+
+      if (control.matches("input[type='checkbox'], input[type='radio']")) {
+        value = control.checked ? "checked" : "";
+      } else if (control.matches("mat-select")) {
+        value = control.getAttribute("data-value") || control.textContent.trim();
+      } else if (control.getAttribute("role") === "switch") {
+        value = control.getAttribute("aria-checked") || "";
+      }
+
+      return [key, value];
+    }));
+  }
+
+  function markAccountPanelClean(panel) {
+    if (panel) {
+      panel.dataset.cleanSnapshot = serializeAccountPanel(panel);
+    }
+  }
+
+  function isAccountPanelDirty(panel) {
+    return Boolean(panel && panel.dataset.cleanSnapshot && panel.dataset.cleanSnapshot !== serializeAccountPanel(panel));
+  }
+
+  function restoreAccountPanel(panel) {
+    if (!panel || !panel.dataset.cleanSnapshot) {
+      return;
+    }
+
+    JSON.parse(panel.dataset.cleanSnapshot).forEach(function (entry) {
+      var selector = entry[0] ? "#" + CSS.escape(entry[0]) : "";
+      var value = entry[1];
+      var control = selector ? panel.querySelector(selector) : null;
+
+      if (!control) {
+        return;
+      }
+
+      if (control.matches("input[type='checkbox'], input[type='radio']")) {
+        control.checked = value === "checked";
+        control.toggleAttribute("checked", control.checked);
+      } else if (control.matches("mat-select")) {
+        setSelectValue(selector, value);
+      } else if (control.getAttribute("role") === "switch") {
+        setSwitch(selector, value === "true");
+      } else {
+        setInputNodeValue(control, value);
+      }
+    });
+  }
+
+  function closeDiscardChangesDialog() {
+    var dialog = document.querySelector(".local-discard-dialog");
+
+    if (dialog) {
+      dialog.remove();
+      document.body.classList.remove("local-dialog-open");
+    }
+  }
+
+  function showDiscardChangesDialog(onDiscard) {
+    closeDiscardChangesDialog();
+
+    var wrapper = document.createElement("div");
+    wrapper.className = "local-discard-dialog cdk-overlay-container";
+    wrapper.innerHTML = [
+      '<div class="cdk-overlay-backdrop cdk-overlay-dark-backdrop cdk-overlay-backdrop-showing"></div>',
+      '<div class="cdk-global-overlay-wrapper">',
+      '<mat-dialog-container tabindex="-1" class="mat-mdc-dialog-container mdc-dialog cdk-dialog-container mdc-dialog--open" id="mat-mdc-dialog-0" role="dialog" aria-modal="false" style="--mat-dialog-transition-duration: 150ms;">',
+      '<div class="mat-mdc-dialog-inner-container mdc-dialog__container"><div class="mat-mdc-dialog-surface mdc-dialog__surface">',
+      '<confirm-dialog class="mat-mdc-dialog-component-host ng-star-inserted"><div class="dialog-confirm" id="dialog_confirm">',
+      '<div class="dialog-close-icon"><i class="fal fa-times-circle"></i></div>',
+      '<ignite-card><div class="ignite-card simple" id="ignite-card-2">',
+      '<div class="ignite-card-title"><div card-title="">Discard changes?</div></div>',
+      '<div class="ignite-card-subtitle"></div>',
+      '<div class="ignite-card-content"><div card-content="">Changes you made have not been saved.</div></div>',
+      '</div></ignite-card>',
+      '<div class="ignite-dialog-buttons-container"><div class="ignite-buttons">',
+      '<div class="ignite-button-wrapper"><button id="button_ok" mat-button="" color="primary" class="mdc-button mat-mdc-button-base ignite-button mat-mdc-button mat-primary"><span class="mat-mdc-button-persistent-ripple mdc-button__ripple"></span><span class="mdc-button__label">Discard changes</span><span class="mat-focus-indicator"></span><span class="mat-mdc-button-touch-target"></span><span class="mat-ripple mat-mdc-button-ripple"></span></button></div>',
+      '<a mat-flat-button="" class="mdc-button mat-mdc-button-base ignite-link mdc-button--unelevated mat-mdc-unelevated-button mat-unthemed"><span class="mat-mdc-button-persistent-ripple mdc-button__ripple"></span><span class="mdc-button__label">Cancel</span><span class="mat-focus-indicator"></span><span class="mat-mdc-button-touch-target"></span></a>',
+      '</div></div><hr class="ng-star-inserted"></div></confirm-dialog>',
+      '</div></div></mat-dialog-container></div>',
+    ].join("");
+
+    document.body.appendChild(wrapper);
+    document.body.classList.add("local-dialog-open");
+    wrapper.querySelector("#button_ok").addEventListener("click", function () {
+      closeDiscardChangesDialog();
+      onDiscard();
+    });
+    wrapper.querySelector(".ignite-link").addEventListener("click", closeDiscardChangesDialog);
+    wrapper.querySelector(".dialog-close-icon").addEventListener("click", closeDiscardChangesDialog);
+    wrapper.querySelector(".cdk-overlay-backdrop").addEventListener("click", closeDiscardChangesDialog);
+    wrapper.querySelector("mat-dialog-container").focus();
   }
 
   function updateUserChrome(user) {
@@ -911,24 +1028,64 @@
     return ["/account", "/users/edit-user-account", "/users/edit-user-account/collapse"].includes(getRoute(new URL(window.location.href)));
   }
 
+  function isScoreReportRoute(route) {
+    return /^\/my-activity\/test-score\/[^/]+$/.test(route || getRoute(new URL(window.location.href)));
+  }
+
   function isProtectedRoute(route) {
     return protectedRoutes.has(route) || internalRoutePatterns.some(function (pattern) {
       return pattern.test(route);
     });
   }
 
-  function setInputValue(selector, value) {
-    var input = document.querySelector(selector);
+  function findFirst(selectors) {
+    for (var i = 0; i < selectors.length; i += 1) {
+      var element = document.querySelector(selectors[i]);
+
+      if (element) {
+        return element;
+      }
+    }
+
+    return null;
+  }
+
+  function normalizePhoneCountryCode(value) {
+    var raw = value == null ? "" : String(value).trim();
+    var plusMatch;
+    var digits;
+
+    if (!raw) {
+      return "";
+    }
+
+    plusMatch = raw.match(/\+\s*(\d{1,4})/);
+    if (plusMatch) {
+      return "+" + plusMatch[1];
+    }
+
+    digits = raw.replace(/\D/g, "");
+    return digits ? "+" + digits.slice(0, 4) : raw;
+  }
+
+  function setInputNodeValue(input, value) {
     var field;
     var label;
     var outline;
+    var textField;
+    var stringValue;
 
     if (!input) {
       return;
     }
 
-    input.value = value == null ? "" : String(value);
+    stringValue = value == null ? "" : String(value);
+    input.value = stringValue;
     input.setAttribute("value", input.value);
+    input.setAttribute("aria-invalid", "false");
+    if (input.getAttribute("role") === "combobox") {
+      input.setAttribute("aria-expanded", "false");
+    }
     input.dispatchEvent(new Event("input", { bubbles: true }));
     input.dispatchEvent(new Event("change", { bubbles: true }));
 
@@ -938,8 +1095,15 @@
     }
 
     field.classList.toggle("is-empty", !input.value);
+    field.classList.toggle("mat-form-field-empty", !input.value);
+    field.classList.toggle("mat-form-field-should-float", Boolean(input.value));
+    textField = field.querySelector(".mdc-text-field");
     label = field.querySelector(".mdc-floating-label");
     outline = field.querySelector(".mdc-notched-outline");
+
+    if (textField) {
+      textField.classList.toggle("mdc-text-field--label-floating", Boolean(input.value));
+    }
 
     if (label) {
       label.classList.toggle("mdc-floating-label--float-above", Boolean(input.value));
@@ -948,6 +1112,14 @@
     if (outline) {
       outline.classList.toggle("mdc-notched-outline--notched", Boolean(input.value));
     }
+  }
+
+  function setInputValue(selector, value) {
+    setInputNodeValue(document.querySelector(selector), value);
+  }
+
+  function setFirstInputValue(selectors, value) {
+    setInputNodeValue(findFirst(selectors), value);
   }
 
   function setSelectValue(selector, value) {
@@ -1057,6 +1229,11 @@
     return input ? input.value : undefined;
   }
 
+  function getFirstInputValue(selectors) {
+    var input = findFirst(selectors);
+    return input ? input.value : undefined;
+  }
+
   function getSelectValue(selector) {
     var select = document.querySelector(selector);
     return select ? select.getAttribute("data-value") || "" : undefined;
@@ -1103,15 +1280,15 @@
     setInputValue("#tt-email-input", user.email);
     setInputValue("#mat-input-16", user.email);
     setInputValue("#username-input", user.username);
-    setInputValue("#mat-input-6", user.firstName);
-    setInputValue("#mat-input-7", user.lastName);
+    setFirstInputValue(["#tt-given-names input", "#mat-input-4", "#mat-input-6"], user.firstName);
+    setFirstInputValue(["#tt-last-name input", "#mat-input-5", "#mat-input-7"], user.lastName);
     setInputValue("#mat-input-1", user.cityOfBirth);
     setInputValue("#mat-input-8", user.countryOfBirth);
     setInputValue("#mat-input-9", user.countryOfCitizenship);
-    setInputValue("#mat-input-10", user.countryOfResidence);
+    setFirstInputValue(["#tt-country input", "#mat-input-10"], user.countryOfResidence);
     setInputValue("#mat-input-2", user.streetAddress);
     setInputValue("#mat-input-3", user.city);
-    setInputValue("#ignite_telephone_input_0_country_code", user.phoneCountryCode);
+    setInputValue("#ignite_telephone_input_0_country_code", normalizePhoneCountryCode(user.phoneCountryCode));
     setInputValue("#ignite_telephone_input_0_telephone", user.primaryPhone);
 
     setSelectValue("#mat-select-0", birthDay);
@@ -1175,7 +1352,7 @@
         populateAccountProfile(data.user);
       }
     }).catch(function () {}).finally(function () {
-      if (shouldBlockForUser) {
+      if (shouldBlockForUser && !isScoreReportRoute(route)) {
         hidePreloader();
       }
     });
@@ -1284,6 +1461,7 @@
     window.setTimeout(function () {
       ensurePreloader().classList.remove("local-route-loader--visible");
       document.body.classList.remove("is-loading");
+      document.body.classList.remove("local-score-report-loading");
       document.querySelectorAll("app-root, main, .admin-shell").forEach(function(el) {
         el.style.visibility = "visible";
       });
@@ -1783,78 +1961,95 @@
     var speaking;
     var writing;
 
-    if (!/^\/my-activity\/test-score\/[^/]+$/.test(route)) {
+    if (!isScoreReportRoute(route)) {
       return;
     }
 
-    id = route.split("/").pop();
-    if (id === "latest") {
-      data = await apiJson("/api/user/tests").then(function (payload) {
-        return { test: payload.tests && payload.tests.length ? payload.tests[0] : null };
-      }).catch(function () {
-        return { test: null };
+    showPreloader();
+
+    try {
+      id = route.split("/").pop();
+      if (id === "latest") {
+        data = await apiJson("/api/user/tests").then(function (payload) {
+          return { test: payload.tests && payload.tests.length ? payload.tests[0] : null };
+        }).catch(function () {
+          return { test: null };
+        });
+      } else {
+        data = await apiJson("/api/user/tests/" + encodeURIComponent(id)).catch(function () {
+          return { test: null };
+        });
+      }
+      auth = await apiJson("/api/auth/me").catch(function () {
+        return {};
       });
-    } else {
-      data = await apiJson("/api/user/tests/" + encodeURIComponent(id)).catch(function () {
-        return { test: null };
+      test = data.test;
+
+      if (!test || (auth.user && Number(test.userId) !== Number(auth.user.id))) {
+        clearDynamicScoreReport(auth.user || null);
+        return;
+      }
+
+      if (id === "latest") {
+        window.history.replaceState({ localRoute: "/my-activity/test-score/" + test.id }, "", "/my-activity/test-score/" + encodeURIComponent(test.id));
+      }
+
+      report = test.scoreReport || {};
+      var metadata = report.metadata || test.metadata || {};
+      var validUntil = report.validUntil || addYears(test.testDate, 2);
+      var reportDate = formatReportDate(test.testDate);
+      var validDate = formatReportDate(validUntil);
+      overall = reportScore(test, "overallScore");
+      listening = reportScore(test, "listeningScore");
+      reading = reportScore(test, "readingScore");
+      speaking = reportScore(test, "speakingScore");
+      writing = reportScore(test, "writingScore");
+
+      setText(document.querySelector("#text_test_name"), (test.title || "PTE Academic") + " • ID" + registrationId(test));
+      setText(document.querySelector("#text_test_time"), formatDate(test.testDate) + " - " + testTime(test) + " " + testTimezone(test));
+      setScoreValue(".src_code", report.reportCode || "");
+      setScoreValue(".overall-value, .gse-badge__score", overall);
+      document.querySelectorAll(".vbar-online").forEach(function (bar) {
+        bar.style.left = (overall || "0") + "%";
       });
-    }
-    auth = await apiJson("/api/auth/me").catch(function () {
-      return {};
-    });
-    test = data.test;
+      setScoreBars("Listening", listening);
+      setScoreBars("Reading", reading);
+      setScoreBars("Speaking", speaking);
+      setScoreBars("Writing", writing);
+      setSkillSpinner("Listening", listening);
+      setSkillSpinner("Reading", reading);
+      setSkillSpinner("Speaking", speaking);
+      setSkillSpinner("Writing", writing);
+      setScoreValue(".test-center-location", report.testCenterCountry || "");
+      setScoreValue(".test-center-id", metadata.testCenterId || "");
+      setScoreValue(".test-center-name, .mobile-view-test-centre", report.testCenterName || "");
+      setScoreValue(".test-date", reportDate);
+      setScoreValue(".valid-date", validDate);
+      var reportUser = test.user || auth.user || {};
+      var fullName = [reportUser.firstName, reportUser.lastName].filter(Boolean).join(" ") || reportUser.username || "";
+      var pteId = reportUser.pteId || "";
 
-    if (!test || (auth.user && Number(test.userId) !== Number(auth.user.id))) {
-      clearDynamicScoreReport(auth.user || null);
-      return;
-    }
+      setScoreValue("#profile-user-name, .candidate-name1, .candidate-name2", fullName);
+      setScoreValue("#profile-display-id", pteId ? "PTE ID: " + pteId : "");
+      setScoreValue(".candidate-id", pteId ? "Test Taker ID: " + pteId : "");
+      if (reportUser.avatarUrl) {
+        document.querySelectorAll(".avatar-image").forEach(function (image) {
+          image.src = reportUser.avatarUrl;
+        });
+      }
 
-    if (id === "latest") {
-      window.history.replaceState({ localRoute: "/my-activity/test-score/" + test.id }, "", "/my-activity/test-score/" + encodeURIComponent(test.id));
-    }
+      setLabeledInfo("Test Taker ID", reportUser.pteId || "");
+      setLabeledInfo("Registration ID", registrationId(test));
+      setLabeledInfo("Test Centre Country", report.testCenterCountry || "");
+      setLabeledInfo("Test Centre ID", metadata.testCenterId || "");
+      setLabeledInfo("Test Date", reportDate);
+      setLabeledInfo("Valid Until", validDate);
 
-    report = test.scoreReport || {};
-    var metadata = report.metadata || test.metadata || {};
-    var validUntil = report.validUntil || addYears(test.testDate, 2);
-    var reportDate = formatReportDate(test.testDate);
-    var validDate = formatReportDate(validUntil);
-    overall = reportScore(test, "overallScore");
-    listening = reportScore(test, "listeningScore");
-    reading = reportScore(test, "readingScore");
-    speaking = reportScore(test, "speakingScore");
-    writing = reportScore(test, "writingScore");
-
-    setText(document.querySelector("#text_test_name"), (test.title || "PTE Academic") + " • ID" + registrationId(test));
-    setText(document.querySelector("#text_test_time"), formatDate(test.testDate) + " - " + testTime(test) + " " + testTimezone(test));
-    setScoreValue(".src_code", report.reportCode || "");
-    setScoreValue(".overall-value, .gse-badge__score", overall);
-    document.querySelectorAll(".vbar-online").forEach(function (bar) {
-      bar.style.left = (overall || "0") + "%";
-    });
-    setScoreBars("Listening", listening);
-    setScoreBars("Reading", reading);
-    setScoreBars("Speaking", speaking);
-    setScoreBars("Writing", writing);
-    setSkillSpinner("Listening", listening);
-    setSkillSpinner("Reading", reading);
-    setSkillSpinner("Speaking", speaking);
-    setSkillSpinner("Writing", writing);
-    setScoreValue(".test-center-location", report.testCenterCountry || "");
-    setScoreValue(".test-center-id", metadata.testCenterId || "");
-    setScoreValue(".test-center-name, .mobile-view-test-centre", report.testCenterName || "");
-    setScoreValue(".test-date", reportDate);
-    setScoreValue(".valid-date", validDate);
-    var reportUser = test.user || auth.user || {};
-
-    setLabeledInfo("Test Taker ID", reportUser.pteId || "");
-    setLabeledInfo("Registration ID", registrationId(test));
-    setLabeledInfo("Test Centre Country", report.testCenterCountry || "");
-    setLabeledInfo("Test Centre ID", metadata.testCenterId || "");
-    setLabeledInfo("Test Date", reportDate);
-    setLabeledInfo("Valid Until", validDate);
-
-    if (reportUser) {
-      setCandidateInfo(reportUser);
+      if (reportUser) {
+        setCandidateInfo(reportUser);
+      }
+    } finally {
+      hidePreloader();
     }
   }
 
@@ -2522,6 +2717,77 @@
     });
   }
 
+  function downloadBlob(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement("a");
+
+    link.href = url;
+    link.download = filename || "score-report.pdf";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(function () {
+      URL.revokeObjectURL(url);
+    }, 1000);
+  }
+
+  function filenameFromDisposition(value) {
+    var match = String(value || "").match(/filename\*?=(?:UTF-8''|")?([^";]+)/i);
+
+    return match ? decodeURIComponent(match[1].replace(/"$/g, "")) : "";
+  }
+
+  function setupScoreReportPdfButtons() {
+    if (!isScoreReportRoute()) {
+      return;
+    }
+
+    document.querySelectorAll(".more-result-button").forEach(function (button) {
+      var label = button.textContent.replace(/\s+/g, " ").trim().toLowerCase();
+
+      if (button.dataset.localPdfReady === "true" || label !== "view as pdf") {
+        return;
+      }
+
+      button.dataset.localPdfReady = "true";
+      button.addEventListener("click", function (event) {
+        var id = getRoute(new URL(window.location.href)).split("/").pop();
+        var labelNode = button.querySelector(".mdc-button__label");
+        var originalText = labelNode ? labelNode.textContent : button.textContent;
+
+        event.preventDefault();
+        button.disabled = true;
+        if (labelNode) {
+          labelNode.textContent = " Preparing PDF ";
+        }
+
+        fetch("/api/user/tests/" + encodeURIComponent(id) + "/pdf", {
+          credentials: "same-origin",
+          headers: authHeaders(),
+        }).then(function (response) {
+          if (!response.ok) {
+            return response.json().catch(function () {
+              return {};
+            }).then(function (data) {
+              throw new Error(data.error || "Failed to create PDF.");
+            });
+          }
+
+          return response.blob().then(function (blob) {
+            downloadBlob(blob, filenameFromDisposition(response.headers.get("Content-Disposition")) || "score-report.pdf");
+          });
+        }).catch(function (error) {
+          window.alert(error.message || "Failed to create PDF.");
+        }).finally(function () {
+          button.disabled = false;
+          if (labelNode) {
+            labelNode.textContent = originalText;
+          }
+        });
+      });
+    });
+  }
+
   function navigateTo(path) {
     loadRoute(new URL(path, window.location.href)).catch(function () {
       window.location.href = path;
@@ -2720,15 +2986,16 @@
           setAccountMessage(profilePanel, "");
           var payload = {
             email: getInputValue("#tt-email-input"),
-            firstName: getInputValue("#mat-input-6"),
-            lastName: getInputValue("#mat-input-7"),
+            username: getFirstInputValue(["#tt-username input", "#username-input"]),
+            firstName: getFirstInputValue(["#tt-given-names input", "#mat-input-4", "#mat-input-6"]),
+            lastName: getFirstInputValue(["#tt-last-name input", "#mat-input-5", "#mat-input-7"]),
             cityOfBirth: getInputValue("#mat-input-1"),
-            countryOfBirth: getInputValue("#mat-input-8"),
-            countryOfCitizenship: getInputValue("#mat-input-9"),
-            countryOfResidence: getInputValue("#mat-input-10"),
+            countryOfBirth: getFirstInputValue(["#tt-country-birth input", "#mat-input-8"]),
+            countryOfCitizenship: getFirstInputValue(["#tt-citizenship input", "#mat-input-9"]),
+            countryOfResidence: getFirstInputValue(["#tt-country input", "#mat-input-10"]),
             streetAddress: getInputValue("#mat-input-2"),
             city: getInputValue("#mat-input-3"),
-            phoneCountryCode: getInputValue("#ignite_telephone_input_0_country_code"),
+            phoneCountryCode: normalizePhoneCountryCode(getInputValue("#ignite_telephone_input_0_country_code")),
             primaryPhone: getInputValue("#ignite_telephone_input_0_telephone"),
             birthDay: getSelectValue("#mat-select-0"),
             birthMonth: getSelectValue("#mat-select-1"),
@@ -2763,6 +3030,7 @@
               updateUserChrome(data.user);
               populateAccountProfile(data.user);
             }
+            markAccountPanelClean(profilePanel);
             setAccountMessage(profilePanel, "Profile updated successfully!");
           }).catch(function(err) {
             setAccountMessage(profilePanel, err.message, true);
@@ -2803,6 +3071,7 @@
                 document.querySelector("#mat-input-14").value = "";
                 updatePasswordFieldState(document.querySelector("#mat-input-13"));
                 updatePasswordFieldState(document.querySelector("#mat-input-14"));
+                markAccountPanelClean(passwordPanel);
             }
             else return res.json().then(function(data) { throw new Error(data.error || "Failed to update password."); });
           }).catch(function(err) {
@@ -2841,6 +3110,7 @@
             if (data && data.user) {
               populateAccountProfile(data.user);
             }
+            markAccountPanelClean(privacyPanel);
             setAccountMessage(privacyPanel, "Privacy settings updated successfully!");
           }).catch(function(err) {
             setAccountMessage(privacyPanel, err.message, true);
@@ -2874,6 +3144,7 @@
     setupAccountProfilePanels();
     setupAccountForms();
     setupScoreReportBackButtons();
+    setupScoreReportPdfButtons();
     await setupLearnTabs();
     setupLearnCartButtons();
     await setupCartPage();

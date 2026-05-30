@@ -49,6 +49,10 @@
   display: flex;
 }
 
+.local-score-report-loading app-root {
+  visibility: hidden;
+}
+
 .local-route-loader__spinner {
   animation: ball-clip-rotate 0.75s linear infinite;
   border: 6px solid #fff;
@@ -56,6 +60,134 @@
   border-radius: 100%;
   height: 82px;
   width: 82px;
+}
+
+.local-dialog-open {
+  overflow: hidden;
+}
+
+.local-discard-dialog.cdk-overlay-container {
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 10050;
+}
+
+.local-discard-dialog .cdk-overlay-backdrop {
+  background: rgba(0, 0, 0, 0.32);
+  bottom: 0;
+  left: 0;
+  pointer-events: auto;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.local-discard-dialog .cdk-global-overlay-wrapper {
+  align-items: center;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.local-discard-dialog .mat-mdc-dialog-container {
+  display: block;
+  max-width: 94vw;
+  outline: none;
+  pointer-events: auto;
+  width: 432px;
+}
+
+.local-discard-dialog .mdc-dialog__surface {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 11px 15px -7px rgba(0, 0, 0, 0.2), 0 24px 38px 3px rgba(0, 0, 0, 0.14), 0 9px 46px 8px rgba(0, 0, 0, 0.12);
+  color: var(--pearson-black-color, #252525);
+  font-family: var(--ignite-regular-font, Arial, sans-serif);
+  overflow: hidden;
+}
+
+.local-discard-dialog .dialog-confirm {
+  padding: 24px 24px 18px;
+  position: relative;
+}
+
+.local-discard-dialog .dialog-close-icon {
+  color: var(--pearson-primary-color, #007fa3);
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+  position: absolute;
+  right: 18px;
+  top: 18px;
+}
+
+.local-discard-dialog .ignite-card.simple {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0 34px 0 0;
+}
+
+.local-discard-dialog .ignite-card-title {
+  color: var(--pearson-purple-color, #5c2d91);
+  font-family: var(--ignite-medium-font, Arial, sans-serif);
+  font-size: 26px;
+  line-height: 32px;
+  margin-bottom: 14px;
+}
+
+.local-discard-dialog .ignite-card-content {
+  color: var(--pearson-black-color, #252525);
+  font-size: 16px;
+  line-height: 24px;
+  margin-bottom: 28px;
+}
+
+.local-discard-dialog .ignite-dialog-buttons-container .ignite-buttons {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+  justify-content: flex-start;
+}
+
+.local-discard-dialog .ignite-button,
+.local-discard-dialog .ignite-link {
+  align-items: center;
+  border: 0;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--ignite-semibold-font, Arial, sans-serif);
+  font-size: 14px;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 18px;
+  text-decoration: none;
+}
+
+.local-discard-dialog .ignite-button.mat-primary {
+  background: var(--pearson-primary-color, #007fa3);
+  color: #fff;
+}
+
+.local-discard-dialog .ignite-link {
+  background: transparent;
+  color: var(--pearson-primary-color, #007fa3);
+}
+
+.local-discard-dialog hr {
+  border: 0;
+  border-top: 1px solid var(--pearson-secondary-color, #d8d8d8);
+  margin: 18px -24px 0;
 }
 
 .ignite-password-field .show-hide-password {
