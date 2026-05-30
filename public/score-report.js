@@ -252,6 +252,9 @@
 
     // Info icons dialogs
     setupInfoDialogs();
+    // Run again after a short delay to ensure everything is rendered
+    setTimeout(setupInfoDialogs, 1000);
+    setTimeout(setupInfoDialogs, 3000);
   }
 
   function setupInfoDialogs() {
@@ -259,21 +262,24 @@
     icons.forEach(function (icon) {
       if (icon.dataset.dialogReady) return;
       icon.dataset.dialogReady = "true";
-      icon.classList.add("handcursor");
+      icon.style.cursor = "pointer";
 
       icon.onclick = function (e) {
         e.stopPropagation();
-        var container = icon.closest(".half-cont, .full-cont");
+        var container = icon.closest(".score-overview-cont, .communication-skils-cont, .further-info-cont, .applicant-info-cont");
         var title = "";
         var content = "";
 
-        if (container.classList.contains("score-overview-cont")) {
+        if (container && container.classList.contains("score-overview-cont")) {
           title = "Overall score";
           content = "The overall score reflects the candidate's English language ability. The score is based on performance on all questions in the test. The range for the overall score is 10-90 points on Pearson's Global Scale of English (GSE). <a class=\"hand-cursor\"> More information. </a>";
-          showDialog(title, content);
-        } else if (container.classList.contains("communication-skils-cont") || container.classList.contains("further-info-cont")) {
+        } else {
+          // Default to Communicative skills for other sections as requested
           title = "Communicative skills";
           content = "Scores for communicative skills (listening, reading, speaking and writing) are based on all test questions that assess these skills, either as a single skill or together with other skills. <a class=\"hand-cursor\"> More information. </a>";
+        }
+
+        if (title) {
           showDialog(title, content);
         }
       };

@@ -2751,15 +2751,15 @@
 
       button.dataset.localPdfReady = "true";
       button.addEventListener("click", function (event) {
-        var id = getRoute(new URL(window.location.href)).split("/").pop();
-        var labelNode = button.querySelector(".mdc-button__label");
-        var originalText = labelNode ? labelNode.textContent : button.textContent;
-
-        event.preventDefault();
-        button.disabled = true;
-        if (labelNode) {
-          labelNode.textContent = " Preparing PDF ";
+        // User asked: retain the original button text and don't change to preparing pdf
+        // The redirection/new tab logic is now handled in score-report.js if btn_view_pdf is present.
+        // If not, we still want the download but without text changes.
+        if (button.id === 'btn_view_pdf') {
+          return; // Let score-report.js handle it
         }
+
+        var id = getRoute(new URL(window.location.href)).split("/").pop();
+        event.preventDefault();
 
         fetch("/api/user/tests/" + encodeURIComponent(id) + "/pdf", {
           credentials: "same-origin",
@@ -2780,9 +2780,6 @@
           window.alert(error.message || "Failed to create PDF.");
         }).finally(function () {
           button.disabled = false;
-          if (labelNode) {
-            labelNode.textContent = originalText;
-          }
         });
       });
     });
