@@ -1,12 +1,12 @@
-class Dog
-  def initialize(name)
-    @name = name
-  end
+when view as pdf is clicked dont change text justg leave it as View as pdf until the pdf doc is downloaded, when share my results is clicked redirect to https://wsr.pearsonvue.com/testtaker/asr/AdditionalScoreReports/PEARSONLANGUAGE?_gl=&conversationId=163654
 
-  def bark
-    "#{@name} says woof!"
-  end
-end
+make sure the stgyling for "<div _ngcontent-ng-c3043431022="" class="adjust-right"><mat-icon _ngcontent-ng-c3043431022="" role="img" class="mat-icon notranslate handcursor material-icons mat-ligature-font mat-icon-no-color" aria-hidden="true" data-mat-icon-type="font">info_outline</mat-icon></div>" is correct fetch it from the clone make sure its accuragte and same
 
-dog = Dog.new("Buddy")
-puts dog.bark
+make sure when the above icon is clicked it shows
+<mat-dialog-container tabindex="-1" class="mat-mdc-dialog-container mdc-dialog cdk-dialog-container mat-mdc-dialog-container-with-actions mdc-dialog--open" id="mat-mdc-dialog-0" role="dialog" aria-modal="false" aria-labelledby="mat-mdc-dialog-title-0" style="--mat-dialog-transition-duration: 150ms;"><div class="mat-mdc-dialog-inner-container mdc-dialog__container"><div class="mat-mdc-dialog-surface mdc-dialog__surface"><srw-dialog-content _nghost-ng-c2590269337="" class="mat-mdc-dialog-component-host ng-star-inserted"><!----><h1 _ngcontent-ng-c2590269337="" mat-dialog-title="" class="mat-mdc-dialog-title mdc-dialog__title title" id="mat-mdc-dialog-title-0"> Overall score
+</h1><div _ngcontent-ng-c2590269337="" mat-dialog-content="" class="mat-mdc-dialog-content mdc-dialog__content content ng-star-inserted"> The overall score reflects the candidate's English language ability. The score is based on performance on all questions in the test. The range for the overall score is 10-90 points on Pearson's Global Scale of English (GSE). <a _ngcontent-ng-c2590269337="" class="hand-cursor ng-star-inserted"> More information. </a><!----><!----><!----></div><!----><!----><div _ngcontent-ng-c2590269337="" mat-dialog-actions="" class="mat-mdc-dialog-actions mdc-dialog__actions actions ng-star-inserted"><button _ngcontent-ng-c2590269337="" mat-button="" cdkfocusinitial="" class="mdc-button mat-mdc-button-base mat-mdc-button mat-unthemed" mat-ripple-loader-class-name="mat-mdc-button-ripple"><span class="mat-mdc-button-persistent-ripple mdc-button__ripple"></span><span class="mdc-button__label"> OK </span><span class="mat-focus-indicator"></span><span class="mat-mdc-button-touch-target"></span><span class="mat-ripple mat-mdc-button-ripple"></span></button></div><!----></srw-dialog-content><!----></div></div></mat-dialog-container>
+
+and
+
+<mat-dialog-container tabindex="-1" class="mat-mdc-dialog-container mdc-dialog cdk-dialog-container mat-mdc-dialog-container-with-actions mdc-dialog--open" id="mat-mdc-dialog-1" role="dialog" aria-modal="false" aria-labelledby="mat-mdc-dialog-title-1" style="--mat-dialog-transition-duration: 150ms;"><div class="mat-mdc-dialog-inner-container mdc-dialog__container"><div class="mat-mdc-dialog-surface mdc-dialog__surface"><srw-dialog-content _nghost-ng-c2590269337="" class="mat-mdc-dialog-component-host ng-star-inserted"><!----><h1 _ngcontent-ng-c2590269337="" mat-dialog-title="" class="mat-mdc-dialog-title mdc-dialog__title title" id="mat-mdc-dialog-title-1"> Communicative skills
+</h1><div _ngcontent-ng-c2590269337="" mat-dialog-content="" class="mat-mdc-dialog-content mdc-dialog__content content ng-star-inserted"> Scores for communicative skills (listening, reading, speaking and writing) are based on all test questions that assess these skills, either as a single skill or together with other skills. <a _ngcontent-ng-c2590269337="" class="hand-cursor ng-star-inserted"> More information. </a><!----><!----><!----></div><!----><!----><div _ngcontent-ng-c2590269337="" mat-dialog-actions="" class="mat-mdc-dialog-actions mdc-dialog__actions actions ng-star-inserted"><button _ngcontent-ng-c2590269337="" mat-button="" cdkfocusinitial="" class="mdc-button mat-mdc-button-base mat-mdc-button mat-unthemed" mat-ripple-loader-class-name="mat-mdc-button-ripple"><span class="mat-mdc-button-persistent-ripple mdc-button__ripple"></span><span class="mdc-button__label"> OK </span><span class="mat-focus-indicator"></span><span class="mat-mdc-button-touch-target"></span><span class="mat-ripple mat-mdc-button-ripple"></span></button></div><!----></srw-dialog-content><!----></div></div></mat-dialog-container>

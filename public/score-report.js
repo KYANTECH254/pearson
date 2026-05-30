@@ -227,6 +227,18 @@
     document.querySelectorAll(".vbar-online").forEach(function (node) {
       node.style.left = (Number(overall) || 0) + "%";
     });
+
+    var pdfBtn = document.getElementById("btn_view_pdf");
+    if (pdfBtn) {
+      pdfBtn.onclick = function () {
+        var token = getStoredAuthToken();
+        var url = "/api/user/tests/" + encodeURIComponent(test.id) + "/pdf";
+        if (token) {
+          url += "?token=" + encodeURIComponent(token);
+        }
+        window.open(url, "_blank");
+      };
+    }
   }
 
   requestScore().then(applyScore).catch(function () {

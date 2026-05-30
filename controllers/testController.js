@@ -63,16 +63,25 @@ function randomHexId(length = 24) {
 }
 
 function chromiumExecutablePath() {
-  return [process.env.PUPPETEER_EXECUTABLE_PATH, "/usr/bin/chromium", "/usr/bin/google-chrome"].find((file) => file && fs.existsSync(file));
+  const paths = [
+    process.env.PUPPETEER_EXECUTABLE_PATH,
+    "/usr/bin/chromium",
+    "/usr/bin/google-chrome",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/chromium-browser",
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+  ];
+  return paths.find((file) => file && fs.existsSync(file));
 }
 
 function pdfFilename(test) {
   const user = test.user || {};
   const report = test.scoreReport || {};
-  const name = [user.firstName, user.lastName].filter(Boolean).join("_") || user.username || "score-report";
+  const name = [user.lastName, user.firstName].filter(Boolean).join("_") || user.username || "score-report";
   const registrationId = report.registrationId || test.id;
 
-  return `${name}_${registrationId}.pdf`.replace(/[^\w.-]+/g, "_");
+  return `PTE_Score_Report_${name}_${registrationId}.pdf`.replace(/[^\w.-]+/g, "_");
 }
 
 function escapeHtml(value) {
@@ -125,111 +134,361 @@ function scoreReportPdfHtml(test) {
   const metadata = { ...(test.metadata || {}), ...(report.metadata || {}) };
   const user = test.user || {};
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || "";
-  const displayName = [user.lastName, user.firstName].filter(Boolean).join(" ") || fullName;
+  const firstName = user.firstName || "";
+  const lastName = user.lastName || "";
+  const pteId = user.pteId || "";
   const registrationId = report.registrationId || metadata.registrationId || "";
   const reportCode = report.reportCode || metadata.reportCode || "";
+  const testDate = test.testDate || metadata.testDate;
   const validUntil = report.validUntil || metadata.validUntil || addYears(test.testDate, 2);
   const testCenterName = report.testCenterName || metadata.testCenterName || "";
+  const testCenterId = report.testCenterId || metadata.testCenterId || "";
   const testCenterCountry = report.testCenterCountry || metadata.testCenterCountry || "";
-  const scores = {
-    Listening: scoreValue(test, report, "listeningScore"),
-    Reading: scoreValue(test, report, "readingScore"),
-    Speaking: scoreValue(test, report, "speakingScore"),
-    Writing: scoreValue(test, report, "writingScore"),
-  };
-  const overall = scoreValue(test, report, "overallScore");
-  const skillRows = Object.entries(scores).map(([name, value]) => `
-    <div class="skill-row">
-      <div class="skill-name">${escapeHtml(name)}</div>
-      <div class="skill-track"><span style="width:${Number(value) || 0}%"></span></div>
-      <div class="skill-score">${escapeHtml(value)}</div>
-    </div>
-  `).join("");
 
-  return `<!doctype html>
+  const listening = Number(scoreValue(test, report, "listeningScore")) || 0;
+  const reading = Number(scoreValue(test, report, "readingScore")) || 0;
+  const speaking = Number(scoreValue(test, report, "speakingScore")) || 0;
+  const writing = Number(scoreValue(test, report, "writingScore")) || 0;
+  const overall = Number(scoreValue(test, report, "overallScore")) || 0;
+
+  const avatarUrl = user.avatarUrl || "https://mypte.pearsonpte.com/assets/no-image.png";
+
+  return `
+<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
   <style>
+    :root {
+      --teal: #16b3a8;
+      --purple: #5c2d91;
+      --dark-blue: #1f3440;
+      --grey: #f4f4f4;
+      --border: #dcdcdc;
+    }
     @page { size: A4; margin: 0; }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: #fff; color: #242424; font-family: Arial, Helvetica, sans-serif; }
-    .page { width: 210mm; min-height: 297mm; padding: 14mm 16mm 12mm; }
-    .top-band { background: #16b3a8; color: #1f3440; padding: 12mm 10mm 8mm; }
-    .title { font-size: 31px; font-weight: 700; letter-spacing: .1px; }
-    .code { font-size: 13px; margin-top: 7px; }
-    .intro { display: grid; grid-template-columns: 1fr 78px; gap: 18px; align-items: start; margin: 15mm 0 9mm; }
-    .name { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
-    .meta { font-size: 12px; line-height: 1.8; }
-    .overall { width: 74px; height: 74px; border-radius: 50%; border: 7px solid #16b3a8; display: grid; place-items: center; font-size: 30px; font-weight: 700; color: #333; }
-    .subtitle { color: #5c2d91; font-size: 18px; font-weight: 700; margin: 7mm 0 5mm; }
-    .skills-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8mm; }
-    .skill-card { border: 1px solid #dedede; min-height: 58px; padding: 8px; text-align: center; }
-    .skill-card strong { display: block; font-size: 23px; color: #333; }
-    .skill-card span { color: #5c2d91; font-size: 12px; font-weight: 700; }
-    .breakdown { border-top: 1px solid #d8d8d8; padding-top: 5mm; }
-    .skill-row { display: grid; grid-template-columns: 82px 1fr 34px; gap: 10px; align-items: center; margin: 9px 0; font-size: 12px; }
-    .skill-track { height: 8px; background: #e8e8e8; position: relative; }
-    .skill-track span { background: #16b3a8; display: block; height: 8px; }
-    .skill-score { font-weight: 700; text-align: right; }
-    .overall-line { display: flex; justify-content: flex-end; align-items: baseline; gap: 8px; color: #5c2d91; font-weight: 700; margin: 5mm 0 8mm; }
-    .overall-line strong { color: #333; font-size: 26px; }
-    .info { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; border-top: 1px solid #d8d8d8; padding-top: 7mm; }
-    .info h2 { color: #5c2d91; font-size: 16px; margin: 0 0 4mm; }
-    .info-row { display: grid; grid-template-columns: 42mm 1fr; gap: 5px; font-size: 11.5px; line-height: 1.55; margin-bottom: 4px; }
-    .label { font-weight: 700; }
-    .footer { color: #666; font-size: 9px; margin-top: 11mm; border-top: 1px solid #e0e0e0; padding-top: 4mm; }
+    body {
+      font-family: "Open Sans", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #333;
+      background: white;
+    }
+    .page {
+      width: 210mm;
+      height: 297mm;
+      position: relative;
+      box-sizing: border-box;
+    }
+    .header {
+      background-color: var(--teal);
+      color: white;
+      padding: 30px 40px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .header img {
+      height: 45px;
+    }
+    .header .report-title {
+      font-size: 28px;
+      font-weight: normal;
+    }
+    .report-code-bar {
+      background-color: var(--grey);
+      padding: 8px 40px;
+      font-size: 13px;
+      color: #444;
+      border-bottom: 1px solid var(--border);
+    }
+    .main-content {
+      padding: 30px 45px;
+    }
+    .top-section {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 25px;
+      align-items: flex-start;
+    }
+    .candidate-brief {
+      display: flex;
+      gap: 25px;
+    }
+    .avatar {
+      width: 120px;
+      height: 144px;
+      background-color: #eee;
+      object-fit: cover;
+      border: 1px solid var(--border);
+    }
+    .candidate-info-top h1 {
+      margin: 0 0 15px 0;
+      font-size: 26px;
+      color: #333;
+      font-weight: 600;
+    }
+    .candidate-info-top p {
+      margin: 4px 0;
+      font-size: 15px;
+      color: #333;
+    }
+    .overall-score-box {
+      background-color: var(--purple);
+      color: white;
+      width: 110px;
+      height: 110px;
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .overall-score-box .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+    .overall-score-box .value {
+      font-size: 54px;
+      font-weight: bold;
+    }
+    .section-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--dark-blue);
+      border-bottom: 1.5px solid var(--border);
+      padding-bottom: 8px;
+      margin: 25px 0 20px 0;
+    }
+    .communicative-skills {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+      margin: 30px 0;
+    }
+    .skill-circle {
+      text-align: center;
+      width: 100px;
+    }
+    .circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 4px solid;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+      margin: 0 auto 10px auto;
+    }
+    .skill-label {
+      font-size: 14px;
+      color: #555;
+      font-weight: 600;
+    }
+    .listening .circle { border-color: #1f3440; color: #1f3440; }
+    .reading .circle { border-color: #c4d600; color: #c4d600; }
+    .speaking .circle { border-color: #555; color: #555; }
+    .writing .circle { border-color: #a3007e; color: #a3007e; }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 50px;
+    }
+    .chart-container {
+      position: relative;
+      margin-top: 15px;
+    }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+    .bar-label {
+      width: 90px;
+      text-align: right;
+      margin-right: 15px;
+      color: #555;
+      font-weight: 500;
+    }
+    .bar-bg {
+      flex-grow: 1;
+      height: 20px;
+      background-color: #f0f0f0;
+      position: relative;
+    }
+    .bar-fill {
+      height: 100%;
+    }
+    .vertical-line {
+      position: absolute;
+      top: -5px;
+      bottom: -5px;
+      width: 3px;
+      background-color: #5b7f95;
+      z-index: 10;
+    }
+    .chart-header {
+      display: flex;
+      justify-content: flex-end;
+      font-size: 12px;
+      margin-bottom: 8px;
+      color: #5b7f95;
+      font-weight: bold;
+      padding-right: 2px;
+    }
+    .info-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .info-list li {
+      margin-bottom: 12px;
+      font-size: 14px;
+      display: flex;
+    }
+    .info-list li strong {
+      display: inline-block;
+      width: 160px;
+      color: #333;
+      flex-shrink: 0;
+    }
+    .footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 30px;
+      background-color: var(--teal);
+    }
+    .side-text {
+      position: absolute;
+      right: 15px;
+      top: 150px;
+      transform: rotate(90deg);
+      transform-origin: right top;
+      font-size: 13px;
+      color: #777;
+      white-space: nowrap;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
-  <main class="page">
-    <section class="top-band">
-      <div class="title">${escapeHtml(test.title || "PTE Academic")} | Score Report</div>
-      <div class="code"><strong>Score Report Code:</strong> ${escapeHtml(reportCode)}</div>
-    </section>
-
-    <section class="intro">
-      <div>
-        <div class="name">${escapeHtml(fullName)}</div>
-        <div class="meta"><strong>Test Taker ID:</strong> ${escapeHtml(user.pteId || "")}</div>
-        <div class="meta"><strong>Registration ID:</strong> ${escapeHtml(registrationId)}</div>
-        <div class="meta">${escapeHtml(displayName)}${registrationId ? " - " + escapeHtml(registrationId) : ""}</div>
+  <div class="page">
+    <div class="header">
+      <img src="https://mypte.pearsonpte.com/assets/images/PEARSON_LOGO_WHITE_RGB.svg" alt="Pearson">
+      <div class="report-title">| ${title} | Score Report</div>
+    </div>
+    <div class="report-code-bar">
+      <strong>Score Report Code:</strong> ${reportCode}
+    </div>
+    <div class="main-content">
+      <div class="top-section">
+        <div class="candidate-brief">
+          <img class="avatar" src="${avatarUrl}" alt="">
+          <div class="candidate-info-top">
+            <h1>${fullName}</h1>
+            <p><strong>Test Taker ID:</strong> ${pteId}</p>
+            <p><strong>Registration ID:</strong> ${registrationId}</p>
+          </div>
+        </div>
+        <div class="overall-score-box">
+          <div class="label">Overall Score</div>
+          <div class="value">${overall}</div>
+        </div>
       </div>
-      <div class="overall">${escapeHtml(overall)}</div>
-    </section>
 
-    <div class="subtitle">Communicative Skills</div>
-    <section class="skills-grid">
-      ${Object.entries(scores).map(([name, value]) => `<div class="skill-card"><strong>${escapeHtml(value)}</strong><span>${escapeHtml(name)}</span></div>`).join("")}
-    </section>
-
-    <section class="breakdown">
-      <div class="subtitle">Skills Breakdown</div>
-      ${skillRows}
-      <div class="overall-line"><strong>${escapeHtml(overall)}</strong><span>Overall</span></div>
-    </section>
-
-    <section class="info">
-      <div>
-        <h2>Candidate Information</h2>
-        <div class="info-row"><div class="label">Date of Birth:</div><div>${escapeHtml(formatPdfDate(user.dateOfBirth))}</div></div>
-        <div class="info-row"><div class="label">Gender:</div><div>${escapeHtml(formatGender(user.gender))}</div></div>
-        <div class="info-row"><div class="label">Country of Citizenship:</div><div>${escapeHtml(user.countryOfCitizenship || "")}</div></div>
-        <div class="info-row"><div class="label">Country of Residence:</div><div>${escapeHtml(user.countryOfResidence || "")}</div></div>
+      <div class="section-title">Communicative Skills</div>
+      <div class="communicative-skills">
+        <div class="skill-circle listening">
+          <div class="circle">${listening}</div>
+          <div class="skill-label">Listening</div>
+        </div>
+        <div class="skill-circle reading">
+          <div class="circle">${reading}</div>
+          <div class="skill-label">Reading</div>
+        </div>
+        <div class="skill-circle speaking">
+          <div class="circle">${speaking}</div>
+          <div class="skill-label">Speaking</div>
+        </div>
+        <div class="skill-circle writing">
+          <div class="circle">${writing}</div>
+          <div class="skill-label">Writing</div>
+        </div>
       </div>
-      <div>
-        <h2>Test Centre Information</h2>
-        <div class="info-row"><div class="label">Test Centre Country:</div><div>${escapeHtml(testCenterCountry)}</div></div>
-        <div class="info-row"><div class="label">Test Centre ID:</div><div>${escapeHtml(report.testCenterId || metadata.testCenterId || "")}</div></div>
-        <div class="info-row"><div class="label">Test Centre:</div><div>${escapeHtml(testCenterName)}</div></div>
-        <div class="info-row"><div class="label">Test Date:</div><div>${escapeHtml(formatPdfDate(test.testDate))}</div></div>
-        <div class="info-row"><div class="label">Valid Until:</div><div>${escapeHtml(formatPdfDate(validUntil))}</div></div>
+
+      <div class="details-grid">
+        <div>
+          <div class="section-title">Skills Breakdown</div>
+          <div class="chart-container">
+            <div class="chart-header">Overall ${overall}</div>
+            <div class="bar-row">
+              <div class="bar-label">Listening ${listening}</div>
+              <div class="bar-bg">
+                <div class="bar-fill" style="width: ${(listening / 90) * 100}%; background-color: #1f3440;"></div>
+                <div class="vertical-line" style="left: ${(overall / 90) * 100}%;"></div>
+              </div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Reading ${reading}</div>
+              <div class="bar-bg">
+                <div class="bar-fill" style="width: ${(reading / 90) * 100}%; background-color: #c4d600;"></div>
+                <div class="vertical-line" style="left: ${(overall / 90) * 100}%;"></div>
+              </div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Speaking ${speaking}</div>
+              <div class="bar-bg">
+                <div class="bar-fill" style="width: ${(speaking / 90) * 100}%; background-color: #555;"></div>
+                <div class="vertical-line" style="left: ${(overall / 90) * 100}%;"></div>
+              </div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Writing ${writing}</div>
+              <div class="bar-bg">
+                <div class="bar-fill" style="width: ${(writing / 90) * 100}%; background-color: #a3007e;"></div>
+                <div class="vertical-line" style="left: ${(overall / 90) * 100}%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="section-title">Candidate Information</div>
+          <ul class="info-list">
+            <li><strong>Date of Birth:</strong> ${formatPdfDate(user.dateOfBirth)}</li>
+            <li><strong>Gender:</strong> ${formatGender(user.gender)}</li>
+            <li><strong>Country of Citizenship:</strong> ${user.countryOfCitizenship || ""}</li>
+            <li><strong>Country of Residence:</strong> ${user.countryOfResidence || ""}</li>
+          </ul>
+        </div>
       </div>
-    </section>
-    <div class="footer">Pearson Test of English score report generated from myPTE.</div>
-  </main>
+
+      <div class="section-title">Test Centre Information</div>
+      <div class="details-grid">
+        <ul class="info-list">
+          <li><strong>Test Centre Country:</strong> ${testCenterCountry}</li>
+          <li><strong>Test Centre ID:</strong> ${report.testCenterId || metadata.testCenterId || ""}</li>
+          <li><strong>Test Centre:</strong> ${testCenterName}</li>
+        </ul>
+        <ul class="info-list">
+          <li><strong>Test Date:</strong> ${formatPdfDate(testDate)}</li>
+          <li><strong>Valid Until:</strong> ${formatPdfDate(validUntil)}</li>
+        </ul>
+      </div>
+    </div>
+    <div class="side-text">
+      ${lastName} ${firstName} - ${registrationId}
+    </div>
+    <div class="footer"></div>
+  </div>
 </body>
-</html>`;
+</html>
+  `;
 }
 
 function scoreReportData(body, test) {
@@ -658,8 +917,15 @@ async function downloadUserTestPdf(req, res, id) {
     return;
   }
 
+  const isLatest = !id || id === "latest";
+  const where = { userId: user.id };
+  if (!isLatest) {
+    where.id = id;
+  }
+
   const test = await prisma.test.findFirst({
-    where: { id, userId: user.id },
+    where,
+    orderBy: isLatest ? { testDate: "desc" } : undefined,
     include: { user: true, scoreReport: true },
   });
 
@@ -671,8 +937,8 @@ async function downloadUserTestPdf(req, res, id) {
   const puppeteer = require("puppeteer");
   const browser = await puppeteer.launch({
     executablePath: chromiumExecutablePath(),
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    headless: "new",
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=none"],
   });
 
   try {
@@ -683,15 +949,19 @@ async function downloadUserTestPdf(req, res, id) {
       format: "A4",
       printBackground: true,
       preferCSSPageSize: true,
+      margin: { top: 0, right: 0, bottom: 0, left: 0 }
     });
 
     res.writeHead(200, {
       "Cache-Control": "no-store",
-      "Content-Disposition": `attachment; filename="${pdfFilename(test)}"`,
+      "Content-Disposition": `inline; filename="${pdfFilename(test)}"`,
       "Content-Length": pdf.length,
       "Content-Type": "application/pdf",
     });
     res.end(pdf);
+  } catch (error) {
+    console.error("PDF Generation error:", error);
+    sendJson(res, 500, { error: "Failed to generate PDF." });
   } finally {
     await browser.close();
   }

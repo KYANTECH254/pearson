@@ -148,8 +148,9 @@ async function ensureDefaultAdmin() {
 
 async function ensureSeedLogins() {
   const { seedProducts } = require("./productController");
+  const { createUserTest } = require("./testController");
 
-  await ensureSeedUser({
+  const kyan = await ensureSeedUser({
     email: "kyan@example.com",
     username: "kyan",
     password: "123456",
@@ -158,6 +159,36 @@ async function ensureSeedLogins() {
     role: "USER",
   });
   await seedProducts();
+
+  // Seed a test if none exists for kyan
+  const testCount = await prisma.test.count({ where: { userId: kyan.id } });
+  if (testCount === 0) {
+    await prisma.test.create({
+      data: {
+        id: crypto.randomBytes(12).toString("hex"),
+        userId: kyan.id,
+        title: "PTE Academic",
+        score: 48,
+        status: "Completed",
+        testDate: new Date(),
+        scoreReport: {
+          create: {
+            reportCode: "05932dRSM3",
+            registrationId: "534649035",
+            overallScore: 48,
+            listeningScore: 52,
+            readingScore: 34,
+            speakingScore: 63,
+            writingScore: 29,
+            testCenterName: "Navitas English Test Centre- Brisbane",
+            testCenterCountry: "Australia",
+            testCenterId: "58064",
+            validUntil: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 2),
+          }
+        }
+      }
+    });
+  }
 }
 
 async function ensureSeedUser(seed) {
@@ -181,6 +212,7 @@ async function ensureSeedUser(seed) {
     : await prisma.user.create({ data });
 
   await assignPteId(prisma, user);
+  return user;
 }
 
 async function setSession(user) {
@@ -201,7 +233,14 @@ async function setSession(user) {
 async function currentUser(req) {
   const authHeader = String(req.headers.authorization || "");
   const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
-  const token = bearerToken;
+  let token = bearerToken;
+
+  if (!token && req.url) {
+    try {
+      const url = new URL(req.url, "http://localhost");
+      token = url.searchParams.get("token") || "";
+    } catch (e) {}
+  }
 
   return userFromSessionToken(token);
 }
