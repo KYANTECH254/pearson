@@ -237,8 +237,82 @@
           url += "?token=" + encodeURIComponent(token);
         }
         window.open(url, "_blank");
+        // User asked: don't change text, just leave it as View as pdf
       };
     }
+
+    // Share results redirection
+    var shareBtn = document.getElementById("ignite-action-card-action-button");
+    if (shareBtn) {
+      shareBtn.onclick = function (e) {
+        e.preventDefault();
+        window.location.href = "https://wsr.pearsonvue.com/testtaker/asr/AdditionalScoreReports/PEARSONLANGUAGE?_gl=&conversationId=163654";
+      };
+    }
+
+    // Info icons dialogs
+    setupInfoDialogs();
+  }
+
+  function setupInfoDialogs() {
+    var icons = document.querySelectorAll(".adjust-right mat-icon");
+    icons.forEach(function (icon) {
+      if (icon.dataset.dialogReady) return;
+      icon.dataset.dialogReady = "true";
+      icon.classList.add("handcursor");
+
+      icon.onclick = function (e) {
+        e.stopPropagation();
+        var container = icon.closest(".half-cont, .full-cont");
+        var title = "";
+        var content = "";
+
+        if (container.classList.contains("score-overview-cont")) {
+          title = "Overall score";
+          content = "The overall score reflects the candidate's English language ability. The score is based on performance on all questions in the test. The range for the overall score is 10-90 points on Pearson's Global Scale of English (GSE). <a class=\"hand-cursor\"> More information. </a>";
+          showDialog(title, content);
+        } else if (container.classList.contains("communication-skils-cont") || container.classList.contains("further-info-cont")) {
+          title = "Communicative skills";
+          content = "Scores for communicative skills (listening, reading, speaking and writing) are based on all test questions that assess these skills, either as a single skill or together with other skills. <a class=\"hand-cursor\"> More information. </a>";
+          showDialog(title, content);
+        }
+      };
+    });
+  }
+
+  function showDialog(title, contentHtml) {
+    var backdrop = document.createElement("div");
+    backdrop.className = "mat-mdc-dialog-backdrop";
+
+    var container = document.createElement("div");
+    container.className = "mat-mdc-dialog-container mdc-dialog cdk-dialog-container mat-mdc-dialog-container-with-actions mdc-dialog--open";
+    container.innerHTML = `
+      <div class="mat-mdc-dialog-inner-container mdc-dialog__container">
+        <div class="mat-mdc-dialog-surface mdc-dialog__surface">
+          <srw-dialog-content class="mat-mdc-dialog-component-host">
+            <h1 mat-dialog-title class="mat-mdc-dialog-title mdc-dialog__title title">${title}</h1>
+            <div mat-dialog-content class="mat-mdc-dialog-content mdc-dialog__content content">${contentHtml}</div>
+            <div mat-dialog-actions class="mat-mdc-dialog-actions mdc-dialog__actions actions">
+              <button mat-button class="mdc-button mat-mdc-button-base mat-mdc-button mat-unthemed btn-ok">
+                <span class="mdc-button__ripple"></span>
+                <span class="mdc-button__label"> OK </span>
+              </button>
+            </div>
+          </srw-dialog-content>
+        </div>
+      </div>
+    `;
+
+    function close() {
+      document.body.removeChild(backdrop);
+      document.body.removeChild(container);
+    }
+
+    container.querySelector(".btn-ok").onclick = close;
+    backdrop.onclick = close;
+
+    document.body.appendChild(backdrop);
+    document.body.appendChild(container);
   }
 
   requestScore().then(applyScore).catch(function () {
