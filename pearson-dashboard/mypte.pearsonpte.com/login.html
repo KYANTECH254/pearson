@@ -1,0 +1,296 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myPTE</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+
+    <script nonce="" async="" src="https://www.googletagmanager.com/gtm.js?id=GTM-N3HNG3"></script>
+    <script async="" src="https://cdn.perfdrive.com/aperture/aperture.js"></script>
+    <script src="/lib/jquery/jquery-3.6.0.min.js" nonce=""></script>
+    <link rel="stylesheet" href="/lib/material/fonts/material-icons.css?v=1">
+    <link rel="stylesheet" href="/fonts/plus-jakarta-sans/plus-jakarta-sans.css?v=1">
+    <link rel="stylesheet" href="/fonts/font-awesome-pro/scss/fontawesome.min.css?v=1">
+    <link rel="stylesheet" href="/fonts/font-awesome-pro/scss/light.min.css?v=1">
+    <link rel="stylesheet" href="/css/ignite-common.min.css?v=1">
+    <link rel="stylesheet" href="/css/ignite-test-taker.min.css?v=1">
+    <link rel="stylesheet" href="/lib/material-components-web/dist/material-components-web.min.css?v=1">
+    <script src="/lib/material-components-web/dist/material-components-web.min.js?v=1" nonce=""></script>
+
+    <script src="/js/shield.js?v=1" nonce=""></script>
+    <!--  Google Tag Manager -->
+    <script nonce="">
+        window.gtmNonce = 'da774f2e-4503-4706-b34f-a8dfe334080e';
+
+        var origCreateElement = document.createElement;
+        document.createElement = function (tag) {
+            var e = origCreateElement.call(document, tag);
+            if (tag == "script") {
+                e.nonce = "da774f2e-4503-4706-b34f-a8dfe334080e";
+                e.setAttribute("nonce", "da774f2e-4503-4706-b34f-a8dfe334080e");
+            }
+            return e;
+        };
+
+        (function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push(
+                { 'gtm.start': new Date().getTime(), event: 'gtm.js' }
+            );
+            var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
+            j.async = true;
+            j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+            j.nonce = 'da774f2e-4503-4706-b34f-a8dfe334080e';
+            f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-N3HNG3');
+    </script>
+    <!-- End Google Tag Manager -->
+    <!-- OneTrust Cookies Consent Notice start -->
+    <script nonce="" src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js" type="text/javascript" charset="UTF-8"
+        data-domain-script="955b1ced-ef1d-46a6-a441-eb5079a8bf72"></script>
+    <script nonce="" type="text/javascript">function OptanonWrapper() { }</script>
+    <!-- OneTrust Cookies Consent Notice end -->
+    <script nonce="" src="https://cdn.cookielaw.org/scripttemplates/202604.1.0/otBannerSdk.js" async=""
+        type="text/javascript"></script>
+    <style>
+        .imageye-selected {
+            outline: 2px solid black !important;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5) !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!--  Google Tag Manager (noscript) -->
+    <noscript>
+        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N3HNG3" height="0" width="0"
+            style="display:none;visibility:hidden"></iframe>
+    </noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <div class="ignite-content">
+
+        <div id="agent_log_in" class="ignite-body ignite-solo-card-backdrop">
+            <div class="ignite-main-content-container">
+
+                <div class="ignite-solo-card-container">
+                    <div class="ignite-solo-card">
+                        <div>
+                            <img id="image_title_image" class="ignite-solo-card-logo-image"
+                                src="/images/PEARSON_LOGO_PURPLE_RGB.svg">
+                        </div>
+                        <div id="title" class="ignite-solo-card-title ignite-test-taker-solo-card-title">
+                            Welcome to myPTE
+                        </div>
+                        <div id="ignite-test-taker-login-sub-title" class="ignite-test-taker-solo-card-sub-title">Book
+                            your tests and access your results.</div>
+                        <div class="ignite-solo-card-content">
+                            <form class="frm" id="loginForm" action="" method="post">
+                                <input type="hidden" id="MFAMode" name="MFAMode" value="Unregistered">
+                                <input type="hidden" id="ReturnUrl" name="ReturnUrl"
+                                    value="/connect/authorize/callback?acr_values=clientType%3AtestTaker&amp;client_id=A50ADEF8-1D33-4D12-A1C7-85A10AA1228D&amp;code_challenge=tLgR7dnM_8n0PEAJLhwRGJKd-8xm_FAwIOBZuh-8qMQ&amp;code_challenge_method=S256&amp;isAccountFound=false&amp;redirect_uri=https%3A%2F%2Fmypte.pearsonpte.com%2Fcallback&amp;registrationRoute=%2Fusers%2Fprofile%2Fquick-registration&amp;response_mode=query&amp;response_type=code&amp;scope=openid%20profile%20role%20roleentity%20user%20permission%20ignite-api&amp;state=cd2eb22636e24fba89c2feb622b1d780">
+                                <div class="ignite-field-wrapper ">
+                                    <label class="mdc-text-field mdc-text-field--outlined">
+                                        <input type="text" autocomplete="off" class="mdc-text-field__input"
+                                            aria-labelledby="my-label-id" id="inputUsername" data-val="true"
+                                            data-val-required="The Username field is required." name="Username"
+                                            value="">
+                                        <span class="mdc-notched-outline mdc-notched-outline--upgraded">
+                                            <span class="mdc-notched-outline__leading"></span>
+                                            <span class="mdc-notched-outline__notch" style="">
+                                                <span class="mdc-floating-label" id="my-label-id"
+                                                    style="">Username</span>
+                                            </span>
+                                            <span class="mdc-notched-outline__trailing"></span>
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="ignite-field-wrapper">
+                                    <label
+                                        class="mdc-text-field mdc-text-field--outlined mdc-text-field--with-trailing-icon">
+                                        <span class="mdc-notched-outline mdc-notched-outline--upgraded">
+                                            <span class="mdc-notched-outline__leading"></span>
+                                            <span class="mdc-notched-outline__notch">
+                                                <span class="mdc-floating-label" id="my-label-id"
+                                                    style="">Password</span>
+                                            </span>
+                                            <span class="mdc-notched-outline__trailing"></span>
+                                        </span>
+                                        <input class="mdc-text-field__input" type="password" autocomplete="off"
+                                            aria-labelledby="my-label-id" id="inputPassword" data-val="true"
+                                            data-val-required="The Password field is required." name="Password">
+                                        <i class="material-icons mdc-text-field__icon mdc-text-field__icon--trailing show-hide-password fal fa-eye-slash"
+                                            tabindex="0" role="button" id="icon_visibility_off"></i>
+                                        <i class="material-icons mdc-text-field__icon mdc-text-field__icon--trailing show-hide-password fal fa-eye"
+                                            tabindex="0" role="button" id="icon_visibility" style="display: none;"></i>
+                                    </label>
+                                </div>
+
+
+
+
+                                <div class="ignite-buttons-container">
+                                    <div class="ignite-buttons">
+                                        <div class="ignite-button-wrapper ">
+                                            <button class="ignite-button mdc-button mdc-button--unelevated"
+                                                type="submit" id="btnLogIn" name="btnLogIn">
+                                                <span class="mdc-button__label">Log in</span>
+                                            </button>
+                                            <div class="ignite-log-in-secondary-actions-row">
+                                                <div class="mdc-form-field">
+                                                    <div class="mdc-checkbox">
+                                                        <input type="checkbox" class="mdc-checkbox__native-control"
+                                                            id="checkRememberMe" data-val="true"
+                                                            data-val-required="The RememberLogin field is required."
+                                                            name="RememberLogin" value="true">
+                                                        <div class=" mdc-checkbox__background">
+                                                            <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                                                                <path class="mdc-checkbox__checkmark-path" fill="none"
+                                                                    d="M1.73,12.91 8.1,19.28 22.79,4.59"></path>
+                                                            </svg>
+                                                            <div class="mdc-checkbox__mixedmark"></div>
+                                                        </div>
+                                                        <div class="mdc-checkbox__ripple"></div>
+                                                    </div>
+                                                    <label for="checkRememberMe">Remember me</label>
+                                                </div>
+                                                <div class="ignite-forgot-username-password">
+                                                    Forgot your<a
+                                                        href="https://mypte.pearsonpte.com/users/forgot-username"
+                                                        id="linkForgotUsername">username</a>
+                                                    or<a href="https://mypte.pearsonpte.com/users/forgot-password"
+                                                        id="linkForgot">password</a>?
+                                                </div>
+                                            </div>
+                                            <div class="ignite-separator"> Need a myPTE account?</div>
+                                            <br>
+                                            <a class="ignite-button ignite-button-secondary mdc-button mdc-button--unelevated button mdc-button__label"
+                                                id="linkNewAccount"
+                                                href="https://mypte.pearsonpte.com/users/profile/quick-registration">
+                                                Sign up
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input name="__X_CSRF_Ignite" type="hidden"
+                                    value="CfDJ8MN2OwwdiTNMtV35nGcXFUuI4m3_mJGGSJeuVxyM8KbnQ9ZdU1wkdbqA732MqQJ9x3vJX8RlX-xAcjNeAN3LIcXAU5QEB7O13wMRnpWHLDnxSyw58yN8MV8qzX9PSr2O4dTt6GzRhTkYjiXOjlGWcSY"><input
+                                    name="RememberLogin" type="hidden" value="false">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div id="text_footer" class="ignite-solo-card-copyright">
+                    <div class="ignite-footer-line">
+                        <a href="https://pearsonpte.com/privacy-policy/" target="_blank" i18n="">Privacy
+                            policy</a><span>|</span>
+                        <a id="ot-sdk-btn" class="ot-sdk-show-settings" i18n="">Cookies</a><span>|</span>
+                        <a href="https://pearsonpte.com/contact-us/" target="_blank" i18n="">Contact us</a>
+                    </div>
+                    <div>
+                        Copyright © 1996-2026 Pearson. All rights reserved.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script nonce="" src="/js/login.js?v=1"></script>
+    <script nonce="">
+        $(".google-mfa-setup").hide();
+        const textFields = document.querySelectorAll('.mdc-text-field');
+        for (const textField of textFields) {
+            mdc.textField.MDCTextField.attachTo(textField);
+        }
+
+        const textFieldHelperTexts = document.querySelectorAll('.mdc-text-field-helper.text');
+        for (const helperText of textFieldHelperTexts) {
+            mdc.textFieldHelperText.MDCTextFieldHelperText.attachTo(helperText);
+        }
+
+        const icons = document.querySelectorAll('.mdc-text-field-icon');
+        for (const icon of icons) {
+            mdc.icon.MDCTextFieldIcon.attachTo(icon);
+        }
+
+        $("#btnLogIn").on("click", function () {
+            $("#IsResendSMS").val(false);
+        });
+
+        $("#inputMFA").val("");
+
+        $("#btnGoogleAuthenticator").on("click", function () {
+            $("#MFAType").val("GoogleAuthenticator");
+            $(".mfa-instructions").hide();
+            $(".google-mfa-setup").show();
+        });
+
+        $("#btnBackToInstructions").on("click", function () {
+            $("#MFAType").val("NotSet");
+            $(".mfa-instructions").show();
+            $(".google-mfa-setup").hide();
+        })
+
+        $("#btnSMSNone").on("click", function () {
+            $("#MFAType").val("None");
+            $("#loginForm").submit();
+        });
+
+        $("#btnSMSEmail").on("click", function () {
+            $("#MFAType").val("Email");
+            $("#loginForm").submit();
+        });
+
+        $("#btnSMSAuthenticator").on("click", function () {
+            $("#MFAType").val("SMS");
+            $("#loginForm").submit();
+        });
+
+        $("#btnSMSAutomation").on("click", function () {
+            $("#MFAType").val("Automation");
+            $("#loginForm").submit();
+        });
+
+        $("#btnResendSMS").on("click", function () {
+            $("#IsResendSMS").val("true");
+            $("#loginForm").submit();
+        });
+
+        var disableLogin = function (disable) {
+            if (disable)
+                $("#btnLogIn").prop('disabled', true).css("opacity", .25);
+            else
+                $("#btnLogIn").prop('disabled', false).css("opacity", 1);
+        }
+
+        var inp = $("#inputMFA");
+        if (inp.length) {
+            inp.on("keyup blur change", function () {
+                disableLogin(inp.val().length == 0);
+            });
+            disableLogin(true);
+        }
+
+        var imgManualCopy = document.getElementById('imgCopyManualKey');
+        if (imgManualCopy) {
+            imgManualCopy.addEventListener('click', function () {
+                var txtManualKey = document.getElementById('textManualKey');
+                var range = document.createRange();
+                range.selectNode(txtManualKey);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+                document.execCommand('copy');
+                window.getSelection().removeAllRanges();
+                imgManualCopy.src = "/images/copied.png";
+            });
+        }
+    </script>
+
+
+
+
+</body>
+
+</html>

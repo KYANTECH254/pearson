@@ -1,0 +1,12 @@
+cookies.json
+downloads/
+screenshots/
+node_modules/
+dist/
+.env
+prisma/*.db
+prisma/*.db-journal
+.postgres-data/
+.postgres-socket/
+.agents
+.codex

@@ -1,0 +1,902 @@
+[
+  {
+    "journeyId": "pte-academic",
+    "title": "PTE Academic",
+    "description": "These resources are suitable for PTE Academic and PTE Academic UKVI. Please note these resources have been updated to show the changes to the revised test launching on May 5th 2025. Look out for ‘Revised test only’ in any of the resources if you are taking your test after May the 4th.",
+    "order": 1,
+    "sections": [
+      {
+        "sectionId": "General",
+        "title": "General information",
+        "menuTitle": "General info",
+        "iconPath": "assets/learn/side-menu/general-info.svg",
+        "isTabGroup": false,
+        "groupTitle": "",
+        "items": [
+          {
+            "title": "PTE Academic Test Taker Handbook",
+            "text": "Check this invaluable guide for everything you need to know before, during and after your test",
+            "type": "PDF",
+            "time": "20 min",
+            "thumbnail": "/assets/images/learn/pte-academic/test_taker_handbook.png",
+            "url": "https://www.pearsonpte.com/pte-a-handbook"
+          },
+          {
+            "title": "What to expect at the test center",
+            "text": "In this video and article, find out what you need to do before going to the test center, as well as what happens once you get there. A test taker explains the entire process.",
+            "type": "Video",
+            "time": "10 min",
+            "thumbnail": "/assets/images/learn/pte-academic/what_to_expect.png",
+            "url": "https://www.pearsonpte.com/pte-a-expect"
+          },
+          {
+            "title": "PTE Academic Score Guide",
+            "text": "Learn all about PTE Academic scores in this guide. It includes score breakdowns and examples of responses at B1, B2 and C1 levels.",
+            "type": "PDF",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-academic/score_guide.png",
+            "url": "https://www.pearsonpte.com/pte-a-score-guide"
+          },
+          {
+            "title": "Guided Practice Test: All skills",
+            "text": "Test your speaking, writing, reading and listening in this mini version of PTE Academic. You’ll practice all question types (1 question for each) and get sample answers.",
+            "type": "Practice test",
+            "time": "1 hour 30 min",
+            "thumbnail": "/assets/images/learn/pte-academic/guided_practice_all_skills.png",
+            "url": "https://www.pearsonpte.com/pte-a-questions"
+          }
+        ]
+      },
+      {
+        "sectionId": "StudyPlan",
+        "title": "Study plan for PTE Academic",
+        "subTitle": "Not sure where to begin? To get ready for your test, here's what we recommend.",
+        "menuTitle": "Study plan",
+        "iconPath": "assets/learn/side-menu/study-plan.svg",
+        "isTabGroup": false,
+        "groupTitle": "",
+        "studyPlans": [
+          {
+            "studyPlanId": "SPLAN_PTE_ACADEMIC_01",
+            "title": "Familiarize yourself with PTE Academic",
+            "studyPlanItems": [
+              {
+                "studyPlanItemId": "SPLAN_PTE_ACADEMIC_01_01",
+                "active": true,
+                "title": "Test format - Introduction to the questions",
+                "description": "For each question type, preview the instructions and find a few tips",
+                "type": 0,
+                "time": "1 hour 25 min",
+                "price": "0",
+                "isMostPopular": false,
+                "isOptional": false,
+                "productType": 0,
+                "examCategory": "PTE Academic",
+                "actions": [
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_01_01_ACT01",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-speaking-intro",
+                    "title": "Speaking & Writing (Part 1)"
+                  },
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_01_01_ACT02",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-reading-intro",
+                    "title": "Reading (Part 2)"
+                  },
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_01_01_ACT03",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-listening-intro",
+                    "title": "Listening (Part 3)"
+                  }
+                ]
+              },
+              {
+                "studyPlanItemId": "SPLAN_PTE_ACADEMIC_01_02",
+                "active": true,
+                "title": "PTE Academic video courses",
+                "description": "Get familiar with the different parts of PTE Academic, with in-depth explainer videos and practice tasks",
+                "type": 0,
+                "time": "2 hours 30 min",
+                "price": "0",
+                "isMostPopular": false,
+                "isOptional": false,
+                "productType": 0,
+                "examCategory": "PTE Academic",
+                "actions": [
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_01_02_ACT01",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-speaking-video",
+                    "title": "Speaking",
+                    "time": "40 min"
+                  },
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_01_02_ACT02",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-writing-video",
+                    "title": "Writing",
+                    "time": "40 min"
+                  },
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_01_02_ACT03",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-reading-video",
+                    "title": "Reading",
+                    "time": "30 min"
+                  },
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_01_02_ACT04",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-listening-video",
+                    "title": "Listening",
+                    "time": "40 min"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "studyPlanId": "SPLAN_PTE_ACADEMIC_02",
+            "title": "Assess your current level of English",
+            "studyPlanItems": [
+              {
+                "studyPlanItemId": "SPLAN_PTE_ACADEMIC_02_01",
+                "active": true,
+                "title": "Guided Practice Test: mini",
+                "description": "Test your speaking, writing, reading and listening in this mini version of PTE Academic. You’ll practice all question types (1 question for each) and get sample answers.",
+                "type": 0,
+                "time": "1 hour 30 min",
+                "price": "0",
+                "isMostPopular": false,
+                "isOptional": false,
+                "productType": 0,
+                "examCategory": "PTE Academic",
+                "actions": [
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_02_01_ACT01",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-questions",
+                    "title": ""
+                  }
+                ]
+              },
+              {
+                "studyPlanItemId": "SPLAN_PTE_ACADEMIC_02_02",
+                "active": false,
+                "title": "Scored Practice Test",
+                "description": "Just like the real test, this is the best way to check if you’re ready for PTE Academic. You’ll get a complete score report within 2 hours. There are 3 tests to choose from.",
+                "type": 1,
+                "time": "2 hours",
+                "price": "$44.99",
+                "isMostPopular": true,
+                "isOptional": true,
+                "productType": 1,
+                "examCategory": "PTE Academic",
+                "actions": [
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_02_02_ACT01",
+                    "actionUrl": "",
+                    "title": ""
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "studyPlanId": "SPLAN_PTE_ACADEMIC_03",
+            "title": "Practice and check if you are ready",
+            "studyPlanItems": [
+              {
+                "studyPlanItemId": "SPLAN_PTE_ACADEMIC_03_02",
+                "active": false,
+                "title": "Guided Practice Test: sectioned",
+                "description": "Focus on each part of PTE Academic: all question types, several questions for each, and sample answers",
+                "type": 0,
+                "time": "2 hours 40 min",
+                "price": "0",
+                "isMostPopular": false,
+                "isOptional": false,
+                "productType": 0,
+                "examCategory": "PTE Academic",
+                "actions": [
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_03_02_ACT01",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-speaking-practice",
+                    "title": "Speaking",
+                    "time": "30 min"
+                  },
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_03_02_ACT02",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-writing-practice",
+                    "title": "Writing",
+                    "time": "1 hour"
+                  },
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_03_02_ACT03",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-reading-practice",
+                    "title": "Reading",
+                    "time": "35 min"
+                  },
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_03_02_ACT04",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-listening-practice",
+                    "title": "Listening",
+                    "time": "35 min"
+                  }
+                ]
+              },
+              {
+                "studyPlanItemId": "SPLAN_PTE_ACADEMIC_03_05",
+                "active": false,
+                "title": "Guided Practice Test: Full version",
+                "description": "Try a full practice mock test! While scores aren't given, you'll get to experience the format and check your reading and listening answers afterward.",
+                "type": 0,
+                "time": "",
+                "price": "0",
+                "isMostPopular": false,
+                "isOptional": false,
+                "productType": 0,
+                "examCategory": "PTE Academic",
+                "actions": [
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_03_05_ACT01",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-full-test1",
+                    "title": "Test 1",
+                    "time": "2 hours 15 min"
+                  },
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_03_05_ACT02",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-full-test2",
+                    "title": "Test 2",
+                    "time": "2 hours 15 min"
+                  },
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_03_05_ACT03",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-full-test3",
+                    "title": "Test 3",
+                    "time": "2 hours 15 min"
+                  },
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_03_05_ACT04",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-full-test4",
+                    "title": "Test 4",
+                    "time": "2 hours 15 min"
+                  }
+                ]
+              },
+              {
+                "studyPlanItemId": "SPLAN_PTE_ACADEMIC_03_03",
+                "active": false,
+                "title": "PTE Academic Question Bank",
+                "description": "Practice 300 PTE Academic questions online. Each question is timed to simulate the test. You also get sample answers for speaking and writing.",
+                "type": 1,
+                "time": "2 hours",
+                "price": "$19.99",
+                "isMostPopular": true,
+                "isOptional": true,
+                "productType": 2,
+                "examCategory": "PTE Academic",
+                "sku": "A103000356132",
+                "actions": [
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_03_03_ACT01",
+                    "actionUrl": "",
+                    "title": ""
+                  }
+                ]
+              },
+              {
+                "studyPlanItemId": "SPLAN_PTE_ACADEMIC_03_04",
+                "active": true,
+                "title": "Scored Practice Test",
+                "description": "Just like the real test, this is the best way to check if you’re ready for PTE Academic. You’ll get a complete score report within 2 hours. There are 3 tests to choose from.",
+                "type": 1,
+                "time": "2 hours",
+                "price": "$44.99",
+                "isMostPopular": true,
+                "isOptional": true,
+                "productType": 1,
+                "examCategory": "PTE Academic",
+                "actions": [
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_03_04_ACT01",
+                    "actionUrl": "",
+                    "title": ""
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "studyPlanId": "SPLAN_PTE_ACADEMIC_04",
+            "title": "Browse test tips and strategies",
+            "studyPlanItems": [
+              {
+                "studyPlanItemId": "SPLAN_PTE_ACADEMIC_04_01",
+                "active": true,
+                "title": "PTE Academic Test Tips",
+                "description": "Get useful strategies for all of the question types",
+                "type": 0,
+                "time": "1 hour 10 min",
+                "price": "0",
+                "isMostPopular": false,
+                "isOptional": false,
+                "productType": 0,
+                "examCategory": "PTE Academic",
+                "actions": [
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_04_01_ACT01",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-speaking-tips",
+                    "title": "Speaking",
+                    "time": "20 min"
+                  },
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_04_01_ACT02",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-writing-tips",
+                    "title": "Writing",
+                    "time": "10 min"
+                  },
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_04_01_ACT03",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-reading-tips",
+                    "title": "Reading",
+                    "time": "20 min"
+                  },
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_04_01_ACT04",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-listening-tips",
+                    "title": "Listening",
+                    "time": "20 min"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "studyPlanId": "SPLAN_PTE_ACADEMIC_05",
+            "title": "Book PTE Academic and prepare for test day",
+            "studyPlanItems": [
+              {
+                "studyPlanItemId": "SPLAN_PTE_ACADEMIC_05_01",
+                "active": true,
+                "title": "What to expect at the test center",
+                "description": "In this video and article, find out what you need to do before going to the test center, as well as what happens once you get there. A test taker explains the entire process.",
+                "type": 0,
+                "time": "10 min",
+                "price": "0",
+                "isMostPopular": false,
+                "isOptional": false,
+                "productType": 0,
+                "examCategory": "PTE Academic",
+                "actions": [
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_05_01_ACT01",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-expect",
+                    "title": ""
+                  }
+                ]
+              },
+              {
+                "studyPlanItemId": "SPLAN_PTE_ACADEMIC_05_02",
+                "active": true,
+                "title": "PTE Academic Test Taker Handbook",
+                "description": "Check this valuable guide for everything you need to know before, during and after your test",
+                "type": 0,
+                "time": "20 min",
+                "price": "0",
+                "isMostPopular": false,
+                "isOptional": false,
+                "productType": 0,
+                "examCategory": "PTE Academic",
+                "actions": [
+                  {
+                    "actionId": "SPLAN_PTE_ACADEMIC_05_01_ACT01",
+                    "actionUrl": "https://www.pearsonpte.com/pte-a-handbook",
+                    "title": ""
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "Speaking",
+        "title": "Speaking",
+        "menuTitle": "Speaking",
+        "iconPath": "assets/learn/side-menu/speaking.svg",
+        "isTabGroup": true,
+        "groupTitle": "Learn by skill",
+        "items": [
+          {
+            "title": "Test format: Speaking & Writing (Part 1)",
+            "text": "Short videos about the different question types in PTE Academic and how best to answer them",
+            "type": "Video",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-academic/test_format_speaking.png",
+            "url": "https://www.pearsonpte.com/pte-a-speaking-intro"
+          },
+          {
+            "title": "Video course: Speaking in PTE Academic",
+            "text": "Get familiar with the speaking part of PTE Academic, with in-depth explainer videos and practice tasks",
+            "type": "Course",
+            "time": "40 min",
+            "thumbnail": "/assets/images/learn/pte-academic/video_course_speaking.png",
+            "url": "https://www.pearsonpte.com/pte-a-speaking-video"
+          },
+          {
+            "title": "Guided Practice Test: Speaking",
+            "text": "Focus on the speaking part of PTE Academic: all question types, several questions for each, and sample answers",
+            "type": "Practice test",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-academic/guided_practice_speaking.png",
+            "url": "https://www.pearsonpte.com/pte-a-speaking-practice"
+          },
+          {
+            "title": "PTE Academic Test Tips",
+            "text": "Get useful strategies for all of the question types found in PTE Academic",
+            "type": "PDF",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-academic/test_tips_speaking.png",
+            "url": "https://www.pearsonpte.com/pte-a-speaking-tips"
+          }
+        ]
+      },
+      {
+        "sectionId": "Writing",
+        "title": "Writing",
+        "menuTitle": "Writing",
+        "iconPath": "assets/learn/side-menu/writing.svg",
+        "isTabGroup": true,
+        "groupTitle": "",
+        "items": [
+          {
+            "title": "Test format: Speaking & Writing (Part 1)",
+            "text": "Short videos about the different question types in PTE Academic and how best to answer them",
+            "type": "Video",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-academic/test_format_writing.png",
+            "url": "https://www.pearsonpte.com/pte-a-writing-intro"
+          },
+          {
+            "title": "Video course: Writing in PTE Academic",
+            "text": "Get familiar with the writing part of PTE Academic, with in-depth explainer videos and practice tasks",
+            "type": "Course",
+            "time": "40 min",
+            "thumbnail": "/assets/images/learn/pte-academic/video_course_writing.png",
+            "url": "https://www.pearsonpte.com/pte-a-writing-video"
+          },
+          {
+            "title": "Guided Practice Test: Writing",
+            "text": "Focus on the writing part of PTE Academic: all question types, several questions for each, and sample answers",
+            "type": "Practice test",
+            "time": "1 hour",
+            "thumbnail": "/assets/images/learn/pte-academic/guided_practice_writing.png",
+            "url": "https://www.pearsonpte.com/pte-a-writing-practice"
+          },
+          {
+            "title": "PTE Academic Test Tips",
+            "text": "Get useful strategies for all of the question types found in PTE Academic",
+            "type": "PDF",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-academic/test_tips_writing.png",
+            "url": "https://www.pearsonpte.com/pte-a-writing-tips"
+          }
+        ]
+      },
+      {
+        "sectionId": "Reading",
+        "title": "Reading",
+        "menuTitle": "Reading",
+        "iconPath": "assets/learn/side-menu/reading.svg",
+        "isTabGroup": true,
+        "groupTitle": "",
+        "items": [
+          {
+            "title": "Test format: Reading (Part 2)",
+            "text": "Short videos about the different question types in PTE Academic and how best to answer them",
+            "type": "Video",
+            "time": "20 min",
+            "thumbnail": "/assets/images/learn/pte-academic/test_format_reading.png",
+            "url": "https://www.pearsonpte.com/pte-a-reading-intro"
+          },
+          {
+            "title": "Video course: Reading in PTE Academic",
+            "text": "Get familiar with the reading part of PTE Academic, with in-depth explainer videos and practice tasks",
+            "type": "Course",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-academic/video_course_reading.png",
+            "url": "https://www.pearsonpte.com/pte-a-reading-video"
+          },
+          {
+            "title": "Guided Practice Test: Reading",
+            "text": "Focus on the reading part of PTE Academic: all question types, several questions for each, and sample answers",
+            "type": "Practice test",
+            "time": "35 min",
+            "thumbnail": "/assets/images/learn/pte-academic/guided_practice_reading.png",
+            "url": "https://www.pearsonpte.com/pte-a-reading-practice"
+          },
+          {
+            "title": "PTE Academic Test Tips",
+            "text": "Get useful strategies for all of the question types found in PTE Academic",
+            "type": "PDF",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-academic/test_tips_reading.png",
+            "url": "https://www.pearsonpte.com/pte-a-reading-tips"
+          }
+        ]
+      },
+      {
+        "sectionId": "Listening",
+        "title": "Listening",
+        "menuTitle": "Listening",
+        "iconPath": "assets/learn/side-menu/listening.svg",
+        "isTabGroup": true,
+        "groupTitle": "",
+        "items": [
+          {
+            "title": "Test format: Listening (Part 3)",
+            "text": "Short videos about the different question types in PTE Academic and how best to answer them",
+            "type": "Video",
+            "time": "35 min",
+            "thumbnail": "/assets/images/learn/pte-academic/test_format_listening.png",
+            "url": "https://www.pearsonpte.com/pte-a-listening-intro"
+          },
+          {
+            "title": "Video course: Listening in PTE Academic",
+            "text": "Get familiar with the listening part of PTE Academic, with in-depth explainer videos and practice tasks",
+            "type": "Course",
+            "time": "40 min",
+            "thumbnail": "/assets/images/learn/pte-academic/video_course_listening.png",
+            "url": "https://www.pearsonpte.com/pte-a-listening-video"
+          },
+          {
+            "title": "Guided Practice Test: Listening",
+            "text": "Focus on the listening part of PTE Academic: all question types, several questions for each, and sample answers",
+            "type": "Practice test",
+            "time": "35 min",
+            "thumbnail": "/assets/images/learn/pte-academic/guided_practice_listening.png",
+            "url": "https://www.pearsonpte.com/pte-a-listening-practice"
+          },
+          {
+            "title": "PTE Academic Test Tips",
+            "text": "Get useful strategies for all of the question types found in PTE Academic",
+            "type": "PDF",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-academic/test_tips_listening.png",
+            "url": "https://www.pearsonpte.com/pte-a-listening-tips"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "journeyId": "pte-core",
+    "title": "PTE Core",
+    "order": 2,
+    "description": "These resources are suitable for PTE Core",
+    "sections": [
+      {
+        "sectionId": "General",
+        "title": "General information",
+        "menuTitle": "General info",
+        "iconPath": "assets/learn/side-menu/general-info.svg",
+        "isTabGroup": false,
+        "groupTitle": "",
+        "items": [
+          {
+            "title": "PTE Core Test Taker Handbook",
+            "text": "Check this invaluable guide for everything you need to know before, during and after your test",
+            "type": "PDF",
+            "time": "20 min",
+            "thumbnail": "/assets/images/learn/pte-core/test_taker_handbook.png",
+            "url": "https://www.pearsonpte.com/pte-c-handbook"
+          },
+          {
+            "title": "What to expect at the test center",
+            "text": "In this video and article, find out what you need to do before going to the test center, as well as what happens once you get there. A test taker explains the entire process.",
+            "type": "Video",
+            "time": "10 min",
+            "thumbnail": "/assets/images/learn/pte-core/what_to_expect.png",
+            "url": "https://www.pearsonpte.com/pte-c-expect"
+          },
+          {
+            "title": "PTE Core Score Guide",
+            "text": "Understand how PTE Core is scored. You’ll find score breakdowns and examples of responses at various Canadian Language Benchmarks (CLB 4, 5 and 7).",
+            "type": "PDF",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-core/score_guide.png",
+            "url": "https://www.pearsonpte.com/pte-c-score-guide"
+          },
+          {
+            "title": "Guided Practice Test: All skills",
+            "text": "Test your speaking, writing, reading and listening in this mini version of PTE Core. You’ll practice all question types (1 question for each) and get sample answers.",
+            "type": "Practice test",
+            "time": "1 hour 30 min",
+            "thumbnail": "/assets/images/learn/pte-core/guided_practice_all_skills.png",
+            "url": "https://www.pearsonpte.com/pte-c-questions"
+          }
+        ]
+      },
+      {
+        "sectionId": "StudyPlan",
+        "title": "How to prepare for PTE Core",
+        "subTitle": "Now sure where to begin? Here’s our recommend 5-step journey of free and optional paid materials to get you up to speed. ",
+        "menuTitle": "Study plan",
+        "iconPath": "assets/learn/side-menu/study-plan.svg",
+        "isTabGroup": false,
+        "groupTitle": ""
+      },
+      {
+        "sectionId": "Speaking",
+        "title": "Speaking",
+        "menuTitle": "Speaking",
+        "iconPath": "assets/learn/side-menu/speaking.svg",
+        "isTabGroup": true,
+        "groupTitle": "Learn by skill",
+        "items": [
+          {
+            "title": "Test format: Speaking & Writing (Part 1)",
+            "text": "8 short videos about the different question types in PTE Core and how best to answer them",
+            "type": "Video",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-core/test_format_speaking.png",
+            "url": "https://www.pearsonpte.com/pte-c-speaking-intro"
+          },
+          {
+            "title": "Video course: Speaking in PTE Core",
+            "text": "Get familiar with the speaking part of PTE Core, with 10 in-depth explainer videos and 5 practice tasks",
+            "type": "Course",
+            "time": "40 min",
+            "thumbnail": "/assets/images/learn/pte-core/video_course_speaking.png",
+            "url": "https://www.pearsonpte.com/pte-c-speaking-video"
+          },
+          {
+            "title": "Guided Practice Test: Speaking",
+            "text": "Focus on the speaking part of PTE Core: all question types, several questions for each, and sample answers",
+            "type": "Practice test",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-core/guided_practice_speaking.png",
+            "url": "https://www.pearsonpte.com/pte-c-speaking-practice"
+          },
+          {
+            "title": "PTE Core Test Tips",
+            "text": "Get useful strategies for all of the question types found in PTE Core",
+            "type": "PDF",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-core/test_tips_speaking.png",
+            "url": "https://www.pearsonpte.com/pte-c-speaking-tips"
+          }
+        ]
+      },
+      {
+        "sectionId": "Writing",
+        "title": "Writing",
+        "menuTitle": "Writing",
+        "iconPath": "assets/learn/side-menu/writing.svg",
+        "isTabGroup": true,
+        "groupTitle": "",
+        "items": [
+          {
+            "title": "Test format: Speaking & Writing (Part 1)",
+            "text": "8 short videos about the different question types in PTE Core and how best to answer them",
+            "type": "Video",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-core/test_format_writing.png",
+            "url": "https://www.pearsonpte.com/pte-c-writing-intro"
+          },
+          {
+            "title": "Video course: Writing in PTE Core",
+            "text": "Get familiar with the writing part of PTE Core, with 4 in-depth explainer videos and 4 practice tasks",
+            "type": "Course",
+            "time": "40 min",
+            "thumbnail": "/assets/images/learn/pte-core/video_course_writing.png",
+            "url": "https://www.pearsonpte.com/pte-c-writing-video"
+          },
+          {
+            "title": "Guided Practice Test: Writing",
+            "text": "Focus on the writing part of PTE Core: all question types, several questions for each, and sample answers",
+            "type": "Practice test",
+            "time": "1 hour",
+            "thumbnail": "/assets/images/learn/pte-core/guided_practice_writing.png",
+            "url": "https://www.pearsonpte.com/pte-c-writing-practice"
+          },
+          {
+            "title": "PTE Core Test Tips",
+            "text": "Get useful strategies for all of the question types found in PTE Core",
+            "type": "PDF",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-core/test_tips_writing.png",
+            "url": "https://www.pearsonpte.com/pte-c-writing-tips"
+          }
+        ]
+      },
+      {
+        "sectionId": "Reading",
+        "title": "Reading",
+        "menuTitle": "Reading",
+        "iconPath": "assets/learn/side-menu/reading.svg",
+        "isTabGroup": true,
+        "groupTitle": "",
+        "items": [
+          {
+            "title": "Test format: Reading (Part 2)",
+            "text": "5 short videos about the different question types in PTE Core and how best to answer them",
+            "type": "Video",
+            "time": "20 min",
+            "thumbnail": "/assets/images/learn/pte-core/test_format_reading.png",
+            "url": "https://www.pearsonpte.com/pte-c-reading-intro"
+          },
+          {
+            "title": "Video course: Reading in PTE Core",
+            "text": "Get familiar with the reading part of PTE Core, with 10 in-depth explainer videos and 5 practice tasks",
+            "type": "Course",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-core/video_course_reading.png",
+            "url": "https://www.pearsonpte.com/pte-c-reading-video"
+          },
+          {
+            "title": "Guided Practice Test: Reading",
+            "text": "Focus on the reading part of PTE Core: all question types, several questions for each, and sample answers",
+            "type": "Practice test",
+            "time": "35 min",
+            "thumbnail": "/assets/images/learn/pte-core/guided_practice_reading.png",
+            "url": "https://www.pearsonpte.com/pte-c-reading-practice"
+          },
+          {
+            "title": "PTE Core Test Tips",
+            "text": "Get useful strategies for all of the question types found in PTE Core",
+            "type": "PDF",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-core/test_tips_reading.png",
+            "url": "https://www.pearsonpte.com/pte-c-reading-tips"
+          }
+        ]
+      },
+      {
+        "sectionId": "Listening",
+        "title": "Listening",
+        "menuTitle": "Listening",
+        "iconPath": "assets/learn/side-menu/listening.svg",
+        "isTabGroup": true,
+        "groupTitle": "",
+        "items": [
+          {
+            "title": "Test format: Listening (Part 3)",
+            "text": "8 short videos about the different question types in PTE Core and how best to answer them",
+            "type": "Video",
+            "time": "35 min",
+            "thumbnail": "/assets/images/learn/pte-core/test_format_listening.png",
+            "url": "https://www.pearsonpte.com/pte-c-listening-intro"
+          },
+          {
+            "title": "Video course: Listening in PTE Core",
+            "text": "Get familiar with the listening part of PTE Core, with 14 in-depth explainer videos and 7 practice tasks",
+            "type": "Course",
+            "time": "40 min",
+            "thumbnail": "/assets/images/learn/pte-core/video_course_listening.png",
+            "url": "https://www.pearsonpte.com/pte-c-listening-video"
+          },
+          {
+            "title": "Guided Practice Test: Listening",
+            "text": "Focus on the listening part of PTE Core: all question types, several questions for each, and sample answers",
+            "type": "Practice test",
+            "time": "35 min",
+            "thumbnail": "/assets/images/learn/pte-core/guided_practice_listening.png",
+            "url": "https://www.pearsonpte.com/pte-c-listening-practice"
+          },
+          {
+            "title": "PTE Core Test Tips",
+            "text": "Get useful strategies for all of the question types found in PTE Core",
+            "type": "PDF",
+            "time": "30 min",
+            "thumbnail": "/assets/images/learn/pte-core/test_tips_listening.png",
+            "url": "https://www.pearsonpte.com/pte-c-listening-tips"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "journeyId": "pte-home",
+    "title": "PTE Home",
+    "description": "These resources are suitable for PTE Home tests",
+    "order": 3,
+    "sections": [
+      {
+        "sectionId": "A1",
+        "title": "PTE Home A1",
+        "menuTitle": "PTE Home A1",
+        "isTabGroup": false,
+        "groupTitle": "",
+        "items": [
+          {
+            "title": "Understand the test format",
+            "text": "3 short videos about the different question types in PTE Home A1 and how best to answer them",
+            "type": "Video",
+            "time": "5 min",
+            "thumbnail": "/assets/images/learn/pte-home/understand_test_format.png",
+            "url": "https://www.pearsonpte.com/pte-a1-intro"
+          },
+          {
+            "title": "Video course: PTE Home A1",
+            "text": "With 7 videos and 3 practice tasks, this course will help you understand and practice for PTE Home A1",
+            "type": "Course",
+            "time": "15 min",
+            "thumbnail": "/assets/images/learn/pte-home/video_course_a1_a2_b1.png",
+            "url": "https://www.pearsonpte.com/pte-a1-practice"
+          },
+          {
+            "title": "PTE Home Test Taker Handbook",
+            "text": "Get ready for PTE Home A1, A2 and B1. This handbook provides a step-by-step guide through the entire test experience.",
+            "type": "PDF",
+            "time": "20 min",
+            "thumbnail": "/assets/images/learn/pte-home/test_taker_handbook.png",
+            "url": "https://www.pearsonpte.com/pte-a1-handbook"
+          }
+        ]
+      },
+      {
+        "sectionId": "A2",
+        "title": "PTE Home A2",
+        "menuTitle": "PTE Home A2",
+        "isTabGroup": false,
+        "groupTitle": "",
+        "items": [
+          {
+            "title": "Understand the test format",
+            "text": "3 short videos about the different question types in PTE Home A2 and how best to answer them",
+            "type": "Video",
+            "time": "5 min",
+            "thumbnail": "/assets/images/learn/pte-home/understand_test_format.png",
+            "url": "https://www.pearsonpte.com/pte-a2-intro"
+          },
+          {
+            "title": "Video course: PTE Home A2",
+            "text": "With 7 videos and 3 practice tasks, this course will help you understand and practice for PTE Home A2",
+            "type": "Course",
+            "time": "15 min",
+            "thumbnail": "/assets/images/learn/pte-home/video_course_a1_a2_b1.png",
+            "url": "https://www.pearsonpte.com/pte-a2-practice"
+          },
+          {
+            "title": "PTE Home Test Taker Handbook",
+            "text": "Get ready for PTE Home A1, A2 and B1. This handbook provides a step-by-step guide through the entire test experience.",
+            "type": "PDF",
+            "time": "20 min",
+            "thumbnail": "/assets/images/learn/pte-home/test_taker_handbook.png",
+            "url": "https://www.pearsonpte.com/pte-a2-handbook"
+          }
+        ]
+      },
+      {
+        "sectionId": "B1",
+        "title": "PTE Home B1",
+        "menuTitle": "PTE Home B1",
+        "isTabGroup": false,
+        "groupTitle": "",
+        "items": [
+          {
+            "title": "Understand the test format",
+            "text": "4 short videos about the different question types in PTE Home B1 and how best to answer them",
+            "type": "Video",
+            "time": "5 min",
+            "thumbnail": "/assets/images/learn/pte-home/understand_test_format.png",
+            "url": "https://www.pearsonpte.com/pte-b1-intro"
+          },
+          {
+            "title": "Video course: PTE Home B1",
+            "text": "With 7 videos and 3 practice tasks, this course will help you understand and practice for PTE Home B1",
+            "type": "Course",
+            "time": "15 min",
+            "thumbnail": "/assets/images/learn/pte-home/video_course_a1_a2_b1.png",
+            "url": "https://www.pearsonpte.com/pte-b1-practice"
+          },
+          {
+            "title": "PTE Home Test Taker Handbook",
+            "text": "Get ready for PTE Home A1, A2 and B1. This handbook provides a step-by-step guide through the entire test experience.",
+            "type": "PDF",
+            "time": "20 min",
+            "thumbnail": "/assets/images/learn/pte-home/test_taker_handbook.png",
+            "url": "https://www.pearsonpte.com/pte-b1-handbook"
+          }
+        ]
+      }
+    ]
+  }
+]

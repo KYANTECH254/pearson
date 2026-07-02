@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin | myPTE</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/assets/cdn.pearsonpte.com/assets/fonts/plus-jakarta-sans/plus-jakarta-sans.css">
+  <link rel="stylesheet" href="/assets/cdn.pearsonpte.com/ignite-design__v_6_1_1.css">
+  <style>
+    :root {
+      --purple: #5c2d91;
+      --teal: #007fa3;
+      --yellow: #ffb81c;
+      --ink: #202020;
+      --line: #d8d8d8;
+      --soft: #f7f7f7;
+      --panel: #ffffff;
+      --muted: #666;
+      --shadow: 0 18px 48px rgba(32, 32, 32, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f5f7f8;
+      color: var(--ink);
+      font-family: var(--ignite-regular-font, "Jakarta Sans Regular", "Plus Jakarta Sans", Arial, sans-serif);
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .brand {
+      color: var(--purple);
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    main {
+      margin: 0 auto;
+      max-width: 1480px;
+      padding: 24px clamp(18px, 3vw, 36px) 48px;
+      height: 100%;
+    }
+
+    .admin-shell {
+      align-items: start;
+      display: grid;
+      gap: 24px;
+      grid-template-columns: 260px minmax(0, 1fr);
+      height: 100%;
+    }
+
+    .admin-content-column {
+      height: 100%;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: transparent transparent;
+    }
+
+    .admin-content-column:hover {
+      scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    }
+
+    .admin-content-column::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .admin-content-column::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .admin-content-column::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: 3px;
+    }
+
+    .admin-content-column:hover::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebar {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 12px 30px rgba(32, 32, 32, 0.05);
+      height: 100%;
+      overflow-y: auto;
+      padding: 22px;
+      scrollbar-width: thin;
+      scrollbar-color: transparent transparent;
+    }
+
+    .sidebar:hover {
+      scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: 2px;
+    }
+
+    .sidebar:hover::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar-nav {
+      display: grid;
+      gap: 8px;
+      margin: 26px 0;
+    }
+
+    .sidebar-nav button {
+      background: transparent;
+      border-radius: 6px;
+      color: #333;
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      min-height: 44px;
+      padding: 12px 14px;
+      text-align: left;
+      width: 100%;
+    }
+
+    .sidebar-nav button:hover,
+    .sidebar-nav button.is-active {
+      background: rgba(0, 127, 163, 0.1);
+      color: var(--teal);
+      filter: none;
+    }
+
+    h1 {
+      color: #fff;
+      font-size: clamp(30px, 4vw, 44px);
+      line-height: 1.05;
+      margin: 0;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #5c2d91 0%, #007fa3 100%);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 24px;
+      grid-template-columns: 1fr auto;
+      margin-bottom: 28px;
+      overflow: hidden;
+      padding: clamp(24px, 4vw, 40px);
+      position: relative;
+    }
+
+    .hero::after {
+      background: var(--yellow);
+      content: "";
+      height: 100%;
+      opacity: 0.9;
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 10px;
+    }
+
+    .hero p {
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 15px;
+      line-height: 1.6;
+      margin: 12px 0 0;
+      max-width: 680px;
+    }
+
+    .stats {
+      align-self: end;
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+    }
+
+    .stat {
+      background: #fbfbfc;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      padding: 16px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .stat span {
+      display: block;
+      font-size: 12px;
+      margin-top: 8px;
+      color: var(--muted);
+    }
+
+    .layout {
+      align-items: start;
+      display: grid;
+      gap: 24px;
+      grid-template-columns: minmax(360px, 430px) minmax(0, 1fr);
+    }
+
+    .admin-page {
+      display: none;
+    }
+
+    .admin-page.is-active {
+      display: block;
+    }
+
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 12px 30px rgba(32, 32, 32, 0.05);
+      overflow: hidden;
+      padding: 0;
+    }
+
+    section form,
+    section .record-list {
+      padding: 22px;
+    }
+
+    .section-head {
+      align-items: center;
+      background: #fbfbfc;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      min-height: 68px;
+      padding: 18px 22px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .section-kicker {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+
+    input,
+    select,
+    textarea {
+      border: 1px solid #a7a7a7;
+      border-radius: 4px;
+      font: inherit;
+      height: 44px;
+      margin-bottom: 14px;
+      padding: 0 12px;
+      width: 100%;
+    }
+
+    textarea {
+      min-height: 96px;
+      padding: 12px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(0, 127, 163, 0.14);
+      outline: 0;
+    }
+
+    button {
+      background: var(--purple);
+      border: 0;
+      border-radius: 4px;
+      color: #fff;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      min-height: 44px;
+      padding: 0 18px;
+    }
+
+    button:hover {
+      filter: brightness(0.96);
+    }
+
+    .secondary {
+      background: var(--teal);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .message {
+      margin-top: 14px;
+      min-height: 22px;
+    }
+
+    .record-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .record-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: grid;
+      gap: 14px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      padding: 16px;
+    }
+
+    .record-card__title {
+      color: var(--purple);
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .record-card__meta {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .record-card__actions {
+      align-items: end;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      justify-content: center;
+      white-space: nowrap;
+    }
+
+    .record-card a {
+      color: var(--teal);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .danger-link {
+      background: transparent;
+      color: #b00020;
+      min-height: 0;
+      padding: 0;
+    }
+
+    .danger-link:hover {
+      filter: none;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 980px) {
+      body {
+        height: auto;
+        overflow: auto;
+      }
+
+      main {
+        height: auto;
+      }
+
+      .admin-shell {
+        display: block;
+        height: auto;
+      }
+
+      .admin-content-column {
+        height: auto;
+        overflow-y: visible;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        height: auto;
+        overflow-y: visible;
+        position: static;
+      }
+
+      .sidebar-nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      main {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .record-card {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="admin-shell">
+      <aside class="sidebar">
+        <div class="brand">myPTE Admin</div>
+        <nav class="sidebar-nav" aria-label="Admin sections">
+          <button class="is-active" type="button" data-admin-tab="usersPage">Users</button>
+          <button type="button" data-admin-tab="testsPage">Tests</button>
+        </nav>
+        <div class="stats">
+          <div class="stat"><strong id="userCount">0</strong><span>Users</span></div>
+          <div class="stat"><strong id="testCount">0</strong><span>Tests</span></div>
+        </div>
+        <div class="actions" style="margin-top:22px;">
+          <button class="secondary" id="logoutButton" type="button">Log out</button>
+        </div>
+      </aside>
+
+      <div class="admin-content-column">
+        <div class="hero">
+          <div>
+            <h1>Admin dashboard</h1>
+            <p>Manage local users, uploaded candidate images, and score report data.</p>
+          </div>
+        </div>
+        <div class="admin-page is-active" id="usersPage">
+        <div class="layout">
+      <section>
+        <div class="section-head">
+          <div>
+            <h2>Create user</h2>
+            <div class="section-kicker">Profile and image upload</div>
+          </div>
+        </div>
+        <form id="userForm">
+          <input id="userId" name="id" type="hidden">
+
+          <label for="pteId">PTE ID</label>
+          <input id="pteId" name="pteId">
+
+          <label for="firstName">First name</label>
+          <input id="firstName" name="firstName" required>
+
+          <label for="lastName">Last name</label>
+          <input id="lastName" name="lastName" required>
+
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" required>
+
+          <label for="username">Username</label>
+          <input id="username" name="username" required>
+
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" required>
+
+          <label for="role">Role</label>
+          <select id="role" name="role">
+            <option value="USER">User</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+
+          <label for="isActive">Active</label>
+          <select id="isActive" name="isActive">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+
+          <label for="birthDay">Birth day</label>
+          <input id="birthDay" name="birthDay" type="number" min="1" max="31">
+
+          <label for="birthMonth">Birth month</label>
+          <input id="birthMonth" name="birthMonth" type="number" min="1" max="12">
+
+          <label for="birthYear">Birth year</label>
+          <input id="birthYear" name="birthYear" type="number" min="1900" max="2100">
+
+          <label for="countryOfCitizenship">Country of citizenship</label>
+          <input id="countryOfCitizenship" name="countryOfCitizenship">
+
+          <label for="countryOfResidence">Country of residence</label>
+          <input id="countryOfResidence" name="countryOfResidence">
+
+          <label for="gender">Gender</label>
+          <input id="gender" name="gender">
+
+          <label for="avatarUpload">User image</label>
+          <input id="avatarUpload" accept="image/*" type="file">
+          <input id="avatarUrl" name="avatarUrl" type="hidden">
+          <img id="avatarPreview" alt="" style="display:none;width:96px;height:96px;object-fit:cover;border-radius:50%;margin:0 0 14px;">
+
+          <div class="actions">
+            <button id="saveUserButton" type="submit">Create user</button>
+            <button class="secondary" id="resetUserForm" type="button">New user</button>
+          </div>
+          <div class="message" id="message"></div>
+        </form>
+      </section>
+
+      <section id="usersPanel">
+        <div class="section-head">
+          <div>
+            <h2>Existing users</h2>
+            <div class="section-kicker">Edit login and candidate details</div>
+          </div>
+        </div>
+        <div class="record-list" id="users"></div>
+      </section>
+        </div>
+        </div>
+
+        <div class="admin-page" id="testsPage">
+        <div class="layout">
+      <section>
+        <div class="section-head">
+          <div>
+            <h2>Create test</h2>
+            <div class="section-kicker">Score report fields</div>
+          </div>
+        </div>
+        <form id="testForm">
+          <input id="testId" name="id" type="hidden">
+
+          <label for="testUserId">User</label>
+          <select id="testUserId" name="userId" required></select>
+
+          <label for="testTitle">Title</label>
+          <input id="testTitle" name="title" required>
+
+          <label for="testScore">Score</label>
+          <input id="testScore" name="score" type="number" step="0.1">
+
+          <label for="testStatus">Status</label>
+          <input id="testStatus" name="status">
+
+          <label for="listeningScore">Listening score</label>
+          <input id="listeningScore" name="listeningScore" type="number" min="0" max="90">
+
+          <label for="readingScore">Reading score</label>
+          <input id="readingScore" name="readingScore" type="number" min="0" max="90">
+
+          <label for="speakingScore">Speaking score</label>
+          <input id="speakingScore" name="speakingScore" type="number" min="0" max="90">
+
+          <label for="writingScore">Writing score</label>
+          <input id="writingScore" name="writingScore" type="number" min="0" max="90">
+
+          <label for="testDate">Test date</label>
+          <input id="testDate" name="testDate" type="date">
+
+          <label for="testTime">Test time</label>
+          <input id="testTime" name="testTime" placeholder="1:30 PM">
+
+          <label for="registrationId">Registration ID</label>
+          <input id="registrationId" name="registrationId">
+
+          <label for="reportCode">Score report code</label>
+          <input id="reportCode" name="reportCode">
+
+          <label for="testCenterName">Test center</label>
+          <input id="testCenterName" name="testCenterName">
+
+          <label for="testCenterId">Test center ID</label>
+          <input id="testCenterId" name="testCenterId">
+
+          <label for="testCenterAddress1">Test center address 1</label>
+          <input id="testCenterAddress1" name="testCenterAddress1">
+
+          <label for="testCenterAddress2">Test center address 2</label>
+          <input id="testCenterAddress2" name="testCenterAddress2">
+
+          <label for="testCenterCity">Test center city</label>
+          <input id="testCenterCity" name="testCenterCity">
+
+          <label for="testCenterState">Test center state</label>
+          <input id="testCenterState" name="testCenterState">
+
+          <label for="testCenterCountry">Test center country</label>
+          <input id="testCenterCountry" name="testCenterCountry">
+
+          <label for="testCenterPostalCode">Test center postal code</label>
+          <input id="testCenterPostalCode" name="testCenterPostalCode">
+
+          <label for="timezone">Timezone</label>
+          <input id="timezone" name="timezone">
+
+          <label for="validUntil">Valid until</label>
+          <input id="validUntil" name="validUntil" type="date">
+
+          <label for="testDescription">Description</label>
+          <textarea id="testDescription" name="description"></textarea>
+
+          <div class="actions">
+            <button id="saveTestButton" type="submit">Save test</button>
+            <button class="secondary" id="resetTestForm" type="button">New test</button>
+          </div>
+          <div class="message" id="testsMessage"></div>
+        </form>
+      </section>
+
+      <section id="testsPanel">
+        <div class="section-head">
+          <div>
+            <h2>Saved tests</h2>
+            <div class="section-kicker">Preview dynamic score reports</div>
+          </div>
+        </div>
+        <div class="record-list" id="tests"></div>
+      </section>
+        </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/admin.js"></script>
+</body>
+</html>
