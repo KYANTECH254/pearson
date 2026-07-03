@@ -1862,6 +1862,10 @@ empty-cart .empty-cart-container button {
   font-family: 'Material Icons' !important;
 }
 
+.applicant-info-cont .adjust-right {
+  display: none !important;
+}
+
 /* Ensure material icons font is applied to anything with the class or tag */
 .material-icons, mat-icon {
   font-family: 'Material Icons' !important;

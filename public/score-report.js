@@ -501,7 +501,7 @@
   }
 
   function setupInfoDialogs() {
-    var icons = document.querySelectorAll(".adjust-right mat-icon, mat-icon");
+    var icons = document.querySelectorAll(".score-overview-cont .adjust-right mat-icon, .communication-skils-cont .adjust-right mat-icon");
 
     icons.forEach(function (icon) {
       if (icon.textContent.trim() !== "info_outline") return;
@@ -516,7 +516,7 @@
       icon.onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
-        var container = icon.closest(".score-overview-cont, .communication-skils-cont, .further-info-cont, .applicant-info-cont");
+        var container = icon.closest(".score-overview-cont, .communication-skils-cont, .further-info-cont");
         var title = "Communicative skills";
         var content = "Scores for communicative skills (listening, reading, speaking and writing) are based on all test questions that assess these skills, either as a single skill or together with other skills. <a class=\"hand-cursor\"> More information. </a>";
 

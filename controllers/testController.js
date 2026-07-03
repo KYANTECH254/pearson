@@ -1,6 +1,7 @@
 const prisma = require("../lib/prisma");
 const crypto = require("crypto");
 const fs = require("fs");
+const path = require("path");
 const { parseJsonBody, sendJson } = require("../lib/http");
 const { requireUser, requireAdmin } = require("./userController");
 const { publicUser } = require("./authController");
@@ -84,6 +85,15 @@ function pdfFilename(test) {
   return `${name}_${registrationId}.pdf`.replace(/[<>:"/\\|?*\x00-\x1F]+/g, "_");
 }
 
+function pdfAssetDataUri(relativePath, mimeType) {
+  try {
+    const filePath = path.join(__dirname, "..", "public", relativePath);
+    return `data:${mimeType};base64,${fs.readFileSync(filePath).toString("base64")}`;
+  } catch (error) {
+    return "";
+  }
+}
+
 function escapeHtml(value) {
   return String(value == null ? "" : value)
     .replace(/&/g, "&amp;")
@@ -145,6 +155,7 @@ function scoreReportPdfHtml(test) {
   const testCenterName = report.testCenterName || metadata.testCenterName || "Navitas English Test Centre- Brisbane";
   const testCenterId = report.testCenterId || metadata.testCenterId || "58064";
   const testCenterCountry = report.testCenterCountry || metadata.testCenterCountry || "Australia";
+  const pearsonLogo = pdfAssetDataUri("assets/images/Logo.svg", "image/svg+xml");
 
   const listening = Number(scoreValue(test, report, "listeningScore")) || 0;
   const reading = Number(scoreValue(test, report, "readingScore")) || 0;
@@ -204,47 +215,44 @@ function scoreReportPdfHtml(test) {
     .header {
       background-color: var(--teal);
       color: #000;
-      height: 68px;
-      padding: 8px 20px 0;
+      height: 70px;
+      padding: 9px 18px 0 20px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 7px;
     }
-    .logo-mark {
+    .brand-logo {
       align-items: center;
-      background: #1d86b7;
-      border-radius: 50%;
-      color: #fff;
       display: flex;
-      font-size: 30px;
-      font-weight: bold;
+      flex: 0 0 auto;
       height: 38px;
-      justify-content: center;
-      line-height: 1;
-      width: 38px;
     }
-    .brand {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 24px;
-      font-weight: 400;
-      letter-spacing: -1px;
-      white-space: nowrap;
+    .brand-logo img {
+      display: block;
+      height: 38px;
+      object-fit: contain;
+      object-position: left center;
+      width: 169px;
     }
     .report-title {
+      align-items: center;
       border-left: 2px solid #111;
-      font-size: 16px;
-      line-height: 20px;
-      margin-left: 1px;
-      padding-left: 5px;
+      display: flex;
+      font-size: 18px;
+      font-weight: 400;
+      height: 30px;
+      line-height: 30px;
+      margin-left: 0;
+      padding-left: 7px;
       white-space: nowrap;
     }
     .report-code-bar {
       background-color: var(--teal);
       color: #000;
       font-size: 9px;
-      height: 28px;
+      height: 26px;
       padding-left: 72px;
-      padding-top: 4px;
+      padding-top: 3px;
     }
     .main-content {
       padding: 16px 22px 0;
@@ -281,34 +289,47 @@ function scoreReportPdfHtml(test) {
     }
     .score-divider {
       background: #d3d3d3;
-      height: 86px;
-      margin-left: auto;
+      height: 114px;
+      margin-left: 92px;
       width: 1px;
     }
     .overall-score-box {
       background-color: var(--purple);
       color: white;
-      width: 62px;
-      height: 62px;
-      border-radius: 7px 7px 22px 22px;
+      width: 84px;
+      height: 80px;
+      border-radius: 8px 8px 38px 38px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      margin-left: 25px;
+      align-items: stretch;
+      justify-content: flex-start;
+      margin-left: 34px;
       margin-top: 1px;
+      overflow: hidden;
+      padding: 0;
     }
     .overall-score-box .label {
-      font-size: 8px;
-      text-transform: uppercase;
+      align-items: center;
+      background: #0a6374;
+      display: flex;
+      font-size: 9px;
       font-weight: bold;
-      line-height: 10px;
-      margin-bottom: 1px;
+      height: 22px;
+      justify-content: center;
+      line-height: 11px;
+      margin: 0;
+      text-align: center;
+      width: 100%;
     }
     .overall-score-box .value {
-      font-size: 34px;
+      align-items: center;
+      display: flex;
+      flex: 1 1 auto;
+      font-size: 40px;
       font-weight: bold;
-      line-height: 1;
+      justify-content: center;
+      line-height: 42px;
+      padding-bottom: 5px;
     }
     .section-title {
       font-size: 15px;
@@ -465,9 +486,8 @@ function scoreReportPdfHtml(test) {
 <body>
   <div class="page">
     <div class="header">
-      <div class="logo-mark">?</div>
-      <div class="brand">Pearson</div>
-      <div class="report-title">${escapeHtml(test.title || "PTE Academic")} | Score Report</div>
+      <div class="brand-logo"><img src="${pearsonLogo}" alt="Pearson PTE"></div>
+      <div class="report-title">Academic | Score Report</div>
     </div>
     <div class="report-code-bar">
       <strong>Score Report Code:</strong>&nbsp;&nbsp; ${escapeHtml(reportCode)}

@@ -1528,14 +1528,7 @@
   }
 
   function scoreReportInfoContent(icon) {
-    var container = icon.closest(".score-overview-cont, .communication-skils-cont, .further-info-cont, .applicant-info-cont");
-
-    if (container && container.classList.contains("applicant-info-cont")) {
-      return {
-        title: "Candidate information",
-        content: "Candidate information shows the details held for the test taker at the time the score report was issued. These details should match the identification used for the test.",
-      };
-    }
+    var container = icon.closest(".score-overview-cont, .communication-skils-cont, .further-info-cont");
 
     if (container && container.classList.contains("score-overview-cont")) {
       return {
@@ -1602,7 +1595,11 @@
       return;
     }
 
-    document.querySelectorAll(".adjust-right mat-icon, .adjust-right .mat-icon").forEach(function (icon) {
+    document.querySelectorAll(".applicant-info-cont .adjust-right").forEach(function (node) {
+      node.remove();
+    });
+
+    document.querySelectorAll(".score-overview-cont .adjust-right mat-icon, .score-overview-cont .adjust-right .mat-icon, .communication-skils-cont .adjust-right mat-icon, .communication-skils-cont .adjust-right .mat-icon").forEach(function (icon) {
       if (icon.textContent.trim() !== "info_outline" || icon.dataset.localScoreInfoReady === "true") {
         return;
       }
