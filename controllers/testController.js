@@ -216,9 +216,9 @@ function scoreReportPdfHtml(test) {
       background-color: var(--teal);
       color: #000;
       height: 70px;
-      padding: 9px 18px 0 20px;
+      padding: 0 18px 0 20px;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 7px;
     }
     .brand-logo {
@@ -226,6 +226,7 @@ function scoreReportPdfHtml(test) {
       display: flex;
       flex: 0 0 auto;
       height: 38px;
+      margin-top: 17px;
     }
     .brand-logo img {
       display: block;
@@ -240,9 +241,10 @@ function scoreReportPdfHtml(test) {
       display: flex;
       font-size: 18px;
       font-weight: 400;
-      height: 30px;
-      line-height: 30px;
+      height: 29px;
+      line-height: 29px;
       margin-left: 0;
+      margin-top: 21px;
       padding-left: 7px;
       white-space: nowrap;
     }

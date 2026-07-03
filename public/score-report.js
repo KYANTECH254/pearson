@@ -315,6 +315,36 @@
     existing.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function scoreShareConversationId(test, report, metadata, user) {
+    var candidates = [
+      metadata.conversationId,
+      metadata.asrConversationId,
+      metadata.pearsonVueConversationId,
+      metadata.vueConversationId,
+      report.conversationId,
+      user.conversationId,
+      user.asrConversationId,
+      user.pearsonVueConversationId,
+      user.vueConversationId,
+    ];
+
+    for (var index = 0; index < candidates.length; index += 1) {
+      if (candidates[index] !== undefined && candidates[index] !== null && String(candidates[index]).trim()) {
+        return String(candidates[index]).trim();
+      }
+    }
+
+    if (user.id) {
+      return String(2263275 + Number(user.id));
+    }
+
+    return report.registrationId || test.id || "";
+  }
+
+  function scoreShareUrl(conversationId) {
+    return "https://wsr.pearsonvue.com/testtaker/asr/AdditionalScoreReports/PEARSONLANGUAGE?_gl=&conversationId=" + encodeURIComponent(conversationId);
+  }
+
   async function requestScore() {
     var token = getStoredAuthToken();
     var id = window.location.pathname.split("/").filter(Boolean).pop() || "";
@@ -489,7 +519,7 @@
     if (shareBtn) {
       shareBtn.onclick = function (e) {
         e.preventDefault();
-        window.location.href = "https://wsr.pearsonvue.com/testtaker/asr/AdditionalScoreReports/PEARSONLANGUAGE?_gl=&conversationId=163654";
+        window.location.href = scoreShareUrl(scoreShareConversationId(test, report, metadata, user));
       };
     }
 

@@ -4,6 +4,7 @@ const { parseCookies, parseJsonBody, sendJson } = require("../lib/http");
 const { hashPassword, verifyPassword } = require("../lib/password");
 const { assignPteId } = require("../lib/pteId");
 const { optionalProfileData } = require("../lib/userProfile");
+const { sendWelcomeEmail } = require("../lib/email");
 
 const sessionCookie = "pearson_session";
 const sessionMaxAgeSeconds = 60 * 60 * 24 * 30;
@@ -215,6 +216,7 @@ async function ensureSeedLogins() {
             testCenterCountry: "Australia",
             testCenterId: "58064",
             validUntil: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 2),
+            metadata: { conversationId: "2263277" },
           }
         }
       }
@@ -347,6 +349,16 @@ async function register(req, res) {
     return;
   }
 
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    sendJson(res, 400, { error: "Please enter a valid email address." });
+    return;
+  }
+
+  if (password.length < 8) {
+    sendJson(res, 400, { error: "Password must be at least 8 characters." });
+    return;
+  }
+
   try {
     let user = await prisma.user.create({
       data: {
@@ -361,6 +373,10 @@ async function register(req, res) {
     });
     user = await assignPteId(prisma, user);
     const token = await setSession(user);
+
+    sendWelcomeEmail(user).catch((error) => {
+      console.warn("Unable to send registration email:", error.message);
+    });
 
     // Return token and user without setting a cookie.
     sendJson(res, 201, { token, user: publicUser(user) });

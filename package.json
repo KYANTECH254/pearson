@@ -9,7 +9,7 @@
     "prepare:public": "node scripts/rewrite-public-assets.js",
     "db:tunnel": "node scripts/ensure-db-tunnel.js",
     "start": "node scripts/ensure-db-tunnel.js && nodemon server.js",
-    "test": "node --check server.js && node --check controllers/authController.js && node --check controllers/productController.js && node --check controllers/testController.js && node --check controllers/userController.js && node --check public/admin.js && node --check public/local-header.js && node --check public/score-report.js && node --check scripts/download-missing-src-assets.js && node --check scripts/ensure-db-tunnel.js && node --check scripts/normalize-page-routes.js && node --check scripts/rewrite-public-assets.js"
+    "test": "node --check server.js && node --check controllers/authController.js && node --check controllers/productController.js && node --check controllers/testController.js && node --check controllers/userController.js && node --check lib/email.js && node --check public/admin.js && node --check public/local-header.js && node --check public/score-report.js && node --check scripts/download-missing-src-assets.js && node --check scripts/ensure-db-tunnel.js && node --check scripts/normalize-page-routes.js && node --check scripts/rewrite-public-assets.js"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +17,7 @@
   "type": "commonjs",
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "nodemailer": "^9.0.3",
     "nodemon": "^3.1.14",
     "prisma": "^6.19.3",
     "puppeteer-core": "^25.0.2"
